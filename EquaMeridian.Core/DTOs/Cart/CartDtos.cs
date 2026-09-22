@@ -20,7 +20,6 @@ namespace EquaMeridian.DTOs.Cart
         /// <summary>Optional. "Supplier Delivery" or "Contractor Pickup".</summary>
         public string? FulfillmentMethod { get; set; }
 
-        /// <summary>Required for supplier delivery. For pickup the API fills listing.Location.</summary>
         [StringLength(300)]
         public string? DeliveryAddress { get; set; }
     }
