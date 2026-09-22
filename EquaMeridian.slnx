@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="EquaMeridian.Core/EquaMeridian.Core.csproj" />
+  <Project Path="EquaMeridian.Infrastructure/EquaMeridian.Infrastructure.csproj" />
+  <Project Path="EquaMeridian/EquaMeridian.csproj" />
+  <Project Path="EquaMeridian.Tests/EquaMeridian.Tests.csproj" />
+</Solution>

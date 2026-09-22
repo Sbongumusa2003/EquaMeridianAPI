@@ -1,0 +1,11 @@
+﻿global using EquaMeridian.DTOs.Auth;
+global using EquaMeridian.DTOs.Listings;
+global using EquaMeridian.DTOs.User;
+global using EquaMeridian.DTOs.Dashboard;
+global using EquaMeridian.DTOs.Fees;
+global using EquaMeridian.DTOs.Disputes;
+global using EquaMeridian.DTOs.Refunds;
+global using EquaMeridian.DTOs.Campaigns;
+global using EquaMeridian.DTOs.Reviews;
+global using EquaMeridian.DTOs.Chatbot;
+global using EquaMeridian.DTOs.Cart;
