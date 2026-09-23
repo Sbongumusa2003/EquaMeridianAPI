@@ -5,13 +5,15 @@ public class EmailService : IEmailService
 {
     private readonly IAuditService _audit;
     private readonly IConfiguration _config;
+    private readonly ILogger<EmailService> _logger;
     private readonly string _fromEmail;
     private readonly string _fromName;
 
-    public EmailService(IAuditService audit, IConfiguration config)
+    public EmailService(IAuditService audit, IConfiguration config, ILogger<EmailService> logger)
     {
         _audit = audit;
         _config = config;
+        _logger = logger;
         _fromEmail = _config["Email:FromAddress"] ?? "noreply@equameridian.co.za";
         _fromName = _config["Email:FromName"] ?? "EquaMeridian";
     }
@@ -615,36 +617,69 @@ public class EmailService : IEmailService
 </html>";
     }
 
+    private string? ResolveApiKey()
+    {
+        // Prefer nested config (Email:SendGridApiKey / Email__SendGridApiKey on Render),
+        // then common flat env names.
+        var key = _config["Email:SendGridApiKey"]
+            ?? _config["SendGrid:ApiKey"]
+            ?? _config["SENDGRID_API_KEY"];
+        return string.IsNullOrWhiteSpace(key) ? null : key.Trim();
+    }
+
     private async Task SendAsync(string to, string toName, string subject, string body)
     {
-        var apiKey = _config["Email:SendGridApiKey"];
+        var apiKey = ResolveApiKey();
         var html = WrapHtml(subject, body);
         var plain = System.Text.RegularExpressions.Regex.Replace(body, "<.*?>", " ");
         plain = System.Text.RegularExpressions.Regex.Replace(plain, @"\s+", " ").Trim();
 
         if (string.IsNullOrWhiteSpace(apiKey))
         {
-            Console.WriteLine($"[EMAIL] (no API key) To: {to} | Subject: {subject}");
+            _logger.LogError(
+                "Email NOT sent to {To} (subject: {Subject}). " +
+                "Email:SendGridApiKey is not configured. " +
+                "Set env var Email__SendGridApiKey on Render and verify the From address in SendGrid.",
+                to, subject);
+            throw new InvalidOperationException(
+                "Email is not configured: missing Email:SendGridApiKey. " +
+                "Add Email__SendGridApiKey on the API service in Render.");
+        }
+
+        if (string.IsNullOrWhiteSpace(to))
+        {
+            _logger.LogWarning("Email skipped — empty recipient. Subject: {Subject}", subject);
             return;
         }
 
         var client = new SendGridClient(apiKey);
         var msg = MailHelper.CreateSingleEmail(
             from: new EmailAddress(_fromEmail, _fromName),
-            to: new EmailAddress(to, toName),
+            to: new EmailAddress(to, toName ?? to),
             subject: subject,
             plainTextContent: plain,
             htmlContent: html
         );
 
-        var response = await client.SendEmailAsync(msg);
+        // Helps deliverability; Reply-To uses the same from address.
+        msg.ReplyTo = new EmailAddress(_fromEmail, _fromName);
 
-        if ((int)response.StatusCode >= 400)
+        var response = await client.SendEmailAsync(msg);
+        var status = (int)response.StatusCode;
+
+        if (status >= 400)
         {
             var responseBody = await response.Body.ReadAsStringAsync();
+            _logger.LogError(
+                "SendGrid rejected email to {To} subject {Subject}: {Status} {Body}",
+                to, subject, status, responseBody);
             throw new InvalidOperationException(
                 $"SendGrid returned {response.StatusCode}: {responseBody}");
         }
+
+        _logger.LogInformation(
+            "Email sent via SendGrid to {To} subject {Subject} status {Status}",
+            to, subject, status);
     }
 
     private async Task SendWithRetryAsync(Func<Task> send, string auditType)
