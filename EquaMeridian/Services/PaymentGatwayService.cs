@@ -80,7 +80,7 @@ public class PaymentGatewayService : IPaymentGatewayService
             ["m_payment_id"] = invoice.InvoiceNumber,
             ["amount"] = invoice.TotalAmount.ToString("F2", System.Globalization.CultureInfo.InvariantCulture),
             ["item_name"] = $"EquaMeridian Invoice {invoice.InvoiceNumber}",
-            ["item_description"] = $"Booking-linked invoice #{invoice.InvoiceID} — {invoice.Currency} {invoice.TotalAmount.ToString("F2", System.Globalization.CultureInfo.InvariantCulture)}",
+            ["item_description"] = $"Booking-linked invoice #{invoice.InvoiceID} - {invoice.Currency} {invoice.TotalAmount.ToString("F2", System.Globalization.CultureInfo.InvariantCulture)}",
             ["custom_int1"] = invoice.InvoiceID.ToString()
         };
 
@@ -117,14 +117,22 @@ public class PaymentGatewayService : IPaymentGatewayService
     public async Task<bool> IsTrustedPayFastSourceAsync(string? remoteIp)
     {
         if (string.IsNullOrWhiteSpace(remoteIp)) return false;
-        if (!IPAddress.TryParse(remoteIp, out var callerIp)) return false;
+
+        // RemoteIpAddress can be a single IP, or occasionally a forwarded chain fragment.
+        var candidates = remoteIp
+            .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Select(s => IPAddress.TryParse(s, out var ip) ? ip : null)
+            .Where(ip => ip is not null)
+            .Cast<IPAddress>()
+            .ToList();
+        if (candidates.Count == 0) return false;
 
         foreach (var host in TrustedNotificationHosts)
         {
             try
             {
                 var addresses = await Dns.GetHostAddressesAsync(host);
-                if (addresses.Any(a => a.Equals(callerIp)))
+                if (candidates.Any(c => addresses.Any(a => a.Equals(c))))
                     return true;
             }
             catch

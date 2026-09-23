@@ -51,7 +51,29 @@ public class PaymentsController : ControllerBase
         decimal.TryParse(_config["Payments:GatewayMaxAmount"], out var max) ? max : 50000m;
 
     private int UserId => int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-    private string? Ip => HttpContext.Connection.RemoteIpAddress?.ToString();
+    /// <summary>
+    /// Prefer Cloudflare / proxy client IP when present; fall back to connection remote IP.
+    /// Required on Render (Cloudflare in front) so PayFast ITN IP checks see the real sender.
+    /// </summary>
+    private string? Ip
+    {
+        get
+        {
+            var cf = Request.Headers["CF-Connecting-IP"].FirstOrDefault();
+            if (!string.IsNullOrWhiteSpace(cf)) return cf.Trim();
+
+            var xff = Request.Headers["X-Forwarded-For"].FirstOrDefault();
+            if (!string.IsNullOrWhiteSpace(xff))
+            {
+                // Left-most is the original client (PayFast when ITN is posted).
+                var first = xff.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                    .FirstOrDefault();
+                if (!string.IsNullOrWhiteSpace(first)) return first;
+            }
+
+            return HttpContext.Connection.RemoteIpAddress?.ToString();
+        }
+    }
 
     [Authorize(Policy = "ContractorOnly")]
     [HttpPost("invoices/{invoiceId}/initiate")]
@@ -157,10 +179,14 @@ public class PaymentsController : ControllerBase
             return Ok();
         }
 
-        if (!await _gateway.IsTrustedPayFastSourceAsync(Ip))
+        // Behind Cloudflare/Render the apparent client IP is often a proxy edge, not PayFast.
+        // Signature + server-side validate are the authoritative checks; treat IP as advisory only.
+        var trustedIp = await _gateway.IsTrustedPayFastSourceAsync(Ip);
+        if (!trustedIp)
         {
-            _logger.LogWarning("PayFast ITN rejected: source IP {Ip} is not a recognised PayFast host.", Ip);
-            return Ok();
+            _logger.LogWarning(
+                "PayFast ITN source IP {Ip} is not a recognised PayFast host (common on Render/Cloudflare). Continuing after signature + validate.",
+                Ip);
         }
 
         if (!await _gateway.ConfirmWithPayFastAsync(fields))
