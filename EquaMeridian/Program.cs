@@ -258,4 +258,9 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 
+// Lightweight, unauthenticated endpoint for uptime monitors (Checkly, etc.).
+// Deliberately does not touch the database - it just proves the process is alive
+// and responsive, so checks stay fast and don't count against DB connection limits.
+app.MapGet("/health", () => Results.Ok(new { status = "ok", time = DateTime.UtcNow }));
+
 app.Run();
