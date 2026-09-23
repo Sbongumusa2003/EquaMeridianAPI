@@ -735,5 +735,29 @@ public class AppDbContext : DbContext
                 .HasForeignKey(t => t.AddedByAdminID)
                 .OnDelete(DeleteBehavior.SetNull);
         });
+
+        // PostgreSQL's "timestamp with time zone" columns require DateTime.Kind == Utc.
+        // AppTime.Now (South Africa local time) returns Kind = Unspecified, which Npgsql
+        // now rejects outright instead of guessing. Rather than converting every seeded/saved
+        // value at the call site, relabel Unspecified DateTimes as Utc on the way in and out
+        // so the existing SAST wall-clock values keep working unchanged end-to-end.
+        var dateTimeConverter = new Microsoft.EntityFrameworkCore.Storage.ValueConversion.ValueConverter<DateTime, DateTime>(
+            v => v.Kind == DateTimeKind.Unspecified ? DateTime.SpecifyKind(v, DateTimeKind.Utc) : v.ToUniversalTime(),
+            v => DateTime.SpecifyKind(v, DateTimeKind.Unspecified));
+
+        var nullableDateTimeConverter = new Microsoft.EntityFrameworkCore.Storage.ValueConversion.ValueConverter<DateTime?, DateTime?>(
+            v => v.HasValue ? (v.Value.Kind == DateTimeKind.Unspecified ? DateTime.SpecifyKind(v.Value, DateTimeKind.Utc) : v.Value.ToUniversalTime()) : v,
+            v => v.HasValue ? DateTime.SpecifyKind(v.Value, DateTimeKind.Unspecified) : v);
+
+        foreach (var entityType in modelBuilder.Model.GetEntityTypes())
+        {
+            foreach (var property in entityType.GetProperties())
+            {
+                if (property.ClrType == typeof(DateTime))
+                    property.SetValueConverter(dateTimeConverter);
+                else if (property.ClrType == typeof(DateTime?))
+                    property.SetValueConverter(nullableDateTimeConverter);
+            }
+        }
     }
 }
