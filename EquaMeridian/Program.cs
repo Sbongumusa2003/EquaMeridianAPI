@@ -234,6 +234,11 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    // Durable listing images: store bytes in Postgres (Render disk is ephemeral).
+    await db.Database.ExecuteSqlRawAsync("""
+        ALTER TABLE "ListingImages" ADD COLUMN IF NOT EXISTS "Content" bytea NULL;
+        ALTER TABLE "ListingImages" ADD COLUMN IF NOT EXISTS "ContentType" text NULL;
+        """);
     await DataSeeder.SeedAsync(db, builder.Configuration);
     // DatabaseObjectsInitializer contains SQL Server-specific T-SQL.
     // Disabled for PostgreSQL deployment on Render.

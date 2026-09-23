@@ -1,27 +1,34 @@
 ﻿using EquaMeridian.Infrastructure.Data;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 
 public class ListingImageRepository : IListingImageRepository
 {
     private static readonly string[] AllowedExtensions = { ".jpg", ".jpeg", ".png", ".webp" };
+    private static readonly Dictionary<string, string> ExtToContentType = new(StringComparer.OrdinalIgnoreCase)
+    {
+        [".jpg"] = "image/jpeg",
+        [".jpeg"] = "image/jpeg",
+        [".png"] = "image/png",
+        [".webp"] = "image/webp",
+    };
     private const int MaxImagesPerListing = 5;
+    private const long MaxBytesPerFile = 10 * 1024 * 1024;
 
     private readonly AppDbContext _db;
-    private readonly IWebHostEnvironment _env;
 
-    public ListingImageRepository(AppDbContext db, IWebHostEnvironment env)
+    public ListingImageRepository(AppDbContext db)
     {
         _db = db;
-        _env = env;
     }
+
+    public static string PublicUrlFor(int imageId) => $"/api/media/listing-images/{imageId}";
 
     public async Task<IEnumerable<string>> GetUrlsByListingAsync(int listingId)
         => await _db.ListingImages
             .Where(i => i.ListingID == listingId)
             .OrderBy(i => i.DisplayOrder)
-            .Select(i => i.FilePath)
+            .Select(i => PublicUrlFor(i.ImageID))
             .ToListAsync();
 
     public const int MinImagesPerListing = 1;
@@ -43,11 +50,6 @@ public class ListingImageRepository : IListingImageRepository
         var saved = new List<string>();
         var order = existingCount;
 
-        var uploadPath = Path.Combine(
-            _env.ContentRootPath, "uploads", "listings", listingId.ToString());
-
-        Directory.CreateDirectory(uploadPath);
-
         foreach (var file in files)
         {
             if (existingCount + saved.Count >= MaxImagesPerListing)
@@ -57,31 +59,54 @@ public class ListingImageRepository : IListingImageRepository
             if (!AllowedExtensions.Contains(ext))
                 continue;
 
-            if (file.Length > 10 * 1024 * 1024)
+            if (file.Length <= 0 || file.Length > MaxBytesPerFile)
                 continue;
 
-            var fileName = $"{Guid.NewGuid()}{ext}";
-            var fullPath = Path.Combine(uploadPath, fileName);
-            var relativeUrl = $"/uploads/listings/{listingId}/{fileName}";
+            await using var ms = new MemoryStream();
+            await file.CopyToAsync(ms);
+            var bytes = ms.ToArray();
+            if (bytes.Length == 0) continue;
 
-            using (var stream = File.Create(fullPath))
-                await file.CopyToAsync(stream);
+            var contentType = file.ContentType;
+            if (string.IsNullOrWhiteSpace(contentType) || contentType == "application/octet-stream")
+                contentType = ExtToContentType.GetValueOrDefault(ext, "application/octet-stream");
 
-            _db.ListingImages.Add(new ListingImage
+            var entity = new ListingImage
             {
                 ListingID = listingId,
-                FilePath = relativeUrl,
+                // Placeholder until we have ImageID; updated after SaveChanges.
+                FilePath = string.Empty,
+                Content = bytes,
+                ContentType = contentType,
                 DisplayOrder = order++,
                 UploadedDate = AppTime.Now
-            });
+            };
 
-            saved.Add(relativeUrl);
-        }
-
-        if (saved.Count > 0)
+            _db.ListingImages.Add(entity);
             await _db.SaveChangesAsync();
 
+            entity.FilePath = PublicUrlFor(entity.ImageID);
+            await _db.SaveChangesAsync();
+
+            saved.Add(entity.FilePath);
+        }
+
         return saved;
+    }
+
+    public async Task<(byte[] Content, string ContentType)?> GetContentAsync(int imageId)
+    {
+        var row = await _db.ListingImages
+            .AsNoTracking()
+            .Where(i => i.ImageID == imageId)
+            .Select(i => new { i.Content, i.ContentType })
+            .FirstOrDefaultAsync();
+
+        if (row?.Content == null || row.Content.Length == 0)
+            return null;
+
+        var ct = string.IsNullOrWhiteSpace(row.ContentType) ? "application/octet-stream" : row.ContentType!;
+        return (row.Content, ct);
     }
 
     public async Task<bool> DeleteAsync(int listingId, int imageId)
@@ -90,11 +115,6 @@ public class ListingImageRepository : IListingImageRepository
             .FirstOrDefaultAsync(i => i.ImageID == imageId && i.ListingID == listingId);
 
         if (image == null) return false;
-        var relativePath = image.FilePath.TrimStart('/').Replace('/', Path.DirectorySeparatorChar);
-        var fullPath = Path.Combine(_env.ContentRootPath, relativePath);
-
-        if (File.Exists(fullPath))
-            File.Delete(fullPath);
 
         _db.ListingImages.Remove(image);
         await _db.SaveChangesAsync();

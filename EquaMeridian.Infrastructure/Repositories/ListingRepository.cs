@@ -343,18 +343,29 @@ public class ListingRepository : IListingRepository
     }
     private async Task<Dictionary<int, List<ListingImageDto>>> BuildImageMapAsync(IEnumerable<int> listingIds)
     {
-        var ids = listingIds.ToList();
+        var ids = listingIds.Distinct().ToList();
+        if (ids.Count == 0)
+            return new Dictionary<int, List<ListingImageDto>>();
 
         var rows = await _db.ListingImages
             .Where(i => ids.Contains(i.ListingID))
-            .OrderBy(i => i.ListingID)
-            .ThenBy(i => i.DisplayOrder)
+            .OrderBy(i => i.DisplayOrder)
             .Select(i => new { i.ListingID, i.ImageID, i.FilePath })
             .ToListAsync();
 
+        // Prefer durable media endpoint URLs so browse keeps working after Render redeploys.
+        // Fall back to stored FilePath for any legacy rows that still point at /uploads/...
         return rows
             .GroupBy(r => r.ListingID)
-            .ToDictionary(g => g.Key, g => g.Select(r => new ListingImageDto { ImageID = r.ImageID, Url = r.FilePath }).ToList());
+            .ToDictionary(
+                g => g.Key,
+                g => g.Select(r => new ListingImageDto
+                {
+                    ImageID = r.ImageID,
+                    Url = string.IsNullOrWhiteSpace(r.FilePath) || r.FilePath.StartsWith("/uploads/", StringComparison.OrdinalIgnoreCase)
+                        ? ListingImageRepository.PublicUrlFor(r.ImageID)
+                        : r.FilePath
+                }).ToList());
     }
 
     private static ListingDto MapToDto(Listing l, Dictionary<int, List<ListingImageDto>> imageMap)
