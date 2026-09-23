@@ -23,4 +23,4 @@ C:\Users\27836\INF370\Team39_EquaMerdian_API\EquaMeridian.Core\obj\Debug\net8.0\
 C:\Users\27836\INF370\Team39_EquaMerdian_API\EquaMeridian.Core\obj\Debug\net8.0\refint\EquaMeridian.Core.dll
 C:\Users\27836\INF370\Team39_EquaMerdian_API\EquaMeridian.Core\obj\Debug\net8.0\EquaMeridian.Core.pdb
 C:\Users\27836\INF370\Team39_EquaMerdian_API\EquaMeridian.Core\obj\Debug\net8.0\ref\EquaMeridian.Core.dll
-C:\Users\27836\INF370\Team39_EquaMerdian_API\EquaMeridian.Core\obj\Debug\net8.0\EquaMeri.E2464E3B.Up2Date
+C:\Users\27836\INF370\Team39_EquaMerdian_API\EquaMeridian.Core\obj\Debug\net8.0\EquaMeridian.Core.sourcelink.json

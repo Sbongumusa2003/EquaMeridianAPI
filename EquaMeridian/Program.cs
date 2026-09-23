@@ -12,10 +12,13 @@ using System.Text;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddDbContextPool<AppDbContext>(opt =>
-    opt.UseSqlServer(
+    opt.UseNpgsql(
         builder.Configuration.GetConnectionString("DefaultConnection"),
-        sql => sql
-            .EnableRetryOnFailure(maxRetryCount: 3, maxRetryDelay: TimeSpan.FromSeconds(5), errorNumbersToAdd: null)
+        npgsql => npgsql
+            .EnableRetryOnFailure(
+                maxRetryCount: 3,
+                maxRetryDelay: TimeSpan.FromSeconds(5),
+                errorCodesToAdd: null)
             .CommandTimeout(30)));
 builder.Services.AddResponseCompression(opt =>
 {
@@ -216,7 +219,9 @@ using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     await DataSeeder.SeedAsync(db, builder.Configuration);
-    await DatabaseObjectsInitializer.InitializeAsync(db);
+    // DatabaseObjectsInitializer contains SQL Server-specific T-SQL.
+    // Disabled for PostgreSQL deployment on Render.
+    // await DatabaseObjectsInitializer.InitializeAsync(db);
 }
 
 app.UseMiddleware<GlobalExceptionMiddleware>();
@@ -228,11 +233,9 @@ forwardedHeadersOptions.KnownNetworks.Clear();
 forwardedHeadersOptions.KnownProxies.Clear();
 app.UseForwardedHeaders(forwardedHeadersOptions);
 
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+// Enable Swagger in all environments during initial deployment (you can restrict later)
+app.UseSwagger();
+app.UseSwaggerUI();
 
 app.UseResponseCompression();
 

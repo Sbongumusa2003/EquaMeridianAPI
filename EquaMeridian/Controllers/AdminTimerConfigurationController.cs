@@ -53,14 +53,12 @@ public class AdminTimerConfigurationController : ControllerBase
     [HttpPost("run-now")]
     public async Task<IActionResult> RunNow()
     {
-        var config = await _repo.GetAsync();
-        var expiredCount = await DatabaseObjectsInitializer.RunExpireStaleQuotationsAsync(_db, config.QuoteExpiryHours);
-
+        // Temporarily disabled - SQL Server stored procedure not available on PostgreSQL yet
         var ip = HttpContext.Connection.RemoteIpAddress?.ToString();
         await _audit.LogAsync(AdminId, "QUOTE_EXPIRY_RUN_MANUALLY",
-            $"Admin manually ran the quote-expiry stored procedure; {expiredCount} quotation(s) expired.",
+            "Admin tried to manually run quote-expiry (feature temporarily disabled on PostgreSQL).",
             AdminId, null, null, ip);
 
-        return Ok(new { expiredCount });
+        return Ok(new { expiredCount = 0, message = "Feature temporarily disabled on PostgreSQL" });
     }
 }

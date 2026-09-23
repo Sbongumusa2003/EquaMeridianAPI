@@ -33,3 +33,4 @@ C:\Users\27836\INF370\Team39_EquaMerdian_API\EquaMeridian.Infrastructure\obj\Deb
 C:\Users\27836\INF370\Team39_EquaMerdian_API\EquaMeridian.Infrastructure\obj\Debug\net8.0\EquaMeridian.Infrastructure.pdb
 C:\Users\27836\INF370\Team39_EquaMerdian_API\EquaMeridian.Infrastructure\obj\Debug\net8.0\EquaMeridian.Infrastructure.genruntimeconfig.cache
 C:\Users\27836\INF370\Team39_EquaMerdian_API\EquaMeridian.Infrastructure\obj\Debug\net8.0\ref\EquaMeridian.Infrastructure.dll
+C:\Users\27836\INF370\Team39_EquaMerdian_API\EquaMeridian.Infrastructure\obj\Debug\net8.0\EquaMeridian.Infrastructure.sourcelink.json

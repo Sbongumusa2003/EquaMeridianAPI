@@ -75,15 +75,16 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<User>()
             .HasIndex(u => u.PhoneNumber)
             .IsUnique()
-            .HasFilter("[PhoneNumber] IS NOT NULL");
+            .HasFilter("\"PhoneNumber\" IS NOT NULL");
         modelBuilder.Entity<User>()
             .Property(u => u.RegistrationNumber)
             .HasMaxLength(100);
         modelBuilder.Entity<User>()
             .Property(u => u.PhoneNumber)
             .HasMaxLength(20);
-        modelBuilder.Entity<User>()
-            .ToTable(tb => tb.HasTrigger("trg_Users_RoleChange_Audit"));
+        // HasTrigger removed for PostgreSQL compatibility (SQL Server specific)
+        // modelBuilder.Entity<User>()
+        //     .ToTable(tb => tb.HasTrigger("trg_Users_RoleChange_Audit"));
 
         modelBuilder.Entity<Listing>()
             .HasOne(l => l.Supplier)

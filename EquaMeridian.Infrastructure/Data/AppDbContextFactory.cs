@@ -11,13 +11,16 @@ public class AppDbContextFactory : IDesignTimeDbContextFactory<AppDbContext>
     {
         var config = new ConfigurationBuilder()
             .SetBasePath(Directory.GetCurrentDirectory())
-            .AddJsonFile("appsettings.json", optional: false)
+            .AddJsonFile("appsettings.json", optional: true)
             .Build();
 
-        var connectionString = config.GetConnectionString("DefaultConnection");
+        // Temporary connection string just for EF tools (migrations).
+        // This is NOT used when the app runs on Render.
+        var connectionString = config.GetConnectionString("DefaultConnection")
+            ?? "Host=localhost;Database=EquaMeridianDB;Username=postgres;Password=postgres";
 
         var optionsBuilder = new DbContextOptionsBuilder<AppDbContext>();
-        optionsBuilder.UseSqlServer(connectionString);
+        optionsBuilder.UseNpgsql(connectionString);
         return new AppDbContext(optionsBuilder.Options);
     }
 }
