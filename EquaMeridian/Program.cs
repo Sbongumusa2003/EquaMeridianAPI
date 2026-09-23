@@ -80,9 +80,13 @@ builder.Services.AddCors(options =>
     {
         var allowedOrigins = builder.Configuration
             .GetSection("App:AllowedOrigins")
-            .Get<string[]>();
+            .Get<string[]>()
+            ?.Where(o => !string.IsNullOrWhiteSpace(o))
+            .Select(o => o.Trim().TrimEnd('/'))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToArray();
 
-        if (allowedOrigins?.Length > 0)
+        if (allowedOrigins is { Length: > 0 })
         {
             policy.WithOrigins(allowedOrigins)
                   .AllowAnyHeader()
@@ -90,9 +94,21 @@ builder.Services.AddCors(options =>
         }
         else
         {
-            policy.SetIsOriginAllowed(origin => new Uri(origin).Host == "localhost")
-                  .AllowAnyHeader()
-                  .AllowAnyMethod();
+            // Dev fallback only — never used when App:AllowedOrigins is set
+            policy.SetIsOriginAllowed(origin =>
+            {
+                if (string.IsNullOrWhiteSpace(origin)) return false;
+                try
+                {
+                    return new Uri(origin).Host.Equals("localhost", StringComparison.OrdinalIgnoreCase);
+                }
+                catch
+                {
+                    return false;
+                }
+            })
+            .AllowAnyHeader()
+            .AllowAnyMethod();
         }
     });
 });
