@@ -234,95 +234,91 @@ public class AuthService : IAuthService
 
     public async Task<ForgotPasswordResponse> ForgotPasswordAsync(string email, string ip)
     {
-        // Always returned, whether or not the account exists, so the response itself never
-        // reveals which emails are registered — but only a real, active account actually gets
-        // an OtpCode row created and an email sent. A reference against a non-existent account
-        // simply fails at the verify step like any other invalid/expired code would.
-        var genericExpiry = AppTime.Now.AddMinutes(10);
+        // Always return the same message whether or not the account exists, so the response
+        // never reveals which emails are registered. Only a real Active account gets a token
+        // and an email with a reset link.
         var genericResponse = new ForgotPasswordResponse
         {
-            Message = "If that email is registered, a 6-digit code has been sent to it.",
-            OtpReference = Guid.NewGuid().ToString("N"),
-            OtpExpiresAt = genericExpiry
+            Message = "If that email is registered, a password reset link has been sent to it."
         };
 
         var user = await _db.Users
             .FirstOrDefaultAsync(u => u.Email.ToLower() == email.Trim().ToLower() && u.AccountStatus == "Active");
         if (user == null) return genericResponse;
 
+        // Rate-limit: max 5 reset emails per hour per user
         var hourAgo = AppTime.Now.AddHours(-1);
-        var recentCount = await _db.OtpCodes
-            .CountAsync(o => o.UserID == user.UserID && o.Purpose == "PasswordReset" && o.CreatedAt >= hourAgo);
+        var recentCount = await _db.PasswordReset
+            .CountAsync(p => p.UserID == user.UserID && p.CreatedAt >= hourAgo);
         if (recentCount >= 5) return genericResponse;
 
-        var code = RandomNumberGenerator.GetInt32(0, 1_000_000).ToString("D6");
-        var reference = Guid.NewGuid().ToString("N");
-        var expiresAt = AppTime.Now.AddMinutes(10);
+        // Invalidate any previous unused tokens for this user
+        var prior = await _db.PasswordReset
+            .Where(p => p.UserID == user.UserID && !p.IsUsed)
+            .ToListAsync();
+        foreach (var p in prior)
+            p.IsUsed = true;
 
-        _db.OtpCodes.Add(new OtpCode
+        // Cryptographically random URL-safe token (raw sent in email; only hash stored)
+        var rawToken = Convert.ToBase64String(RandomNumberGenerator.GetBytes(32))
+            .TrimEnd('=')
+            .Replace('+', '-')
+            .Replace('/', '_');
+        var expiresAt = AppTime.Now.AddHours(24);
+
+        _db.PasswordReset.Add(new PasswordReset
         {
-            Reference = reference,
             UserID = user.UserID,
-            CodeHash = HashToken(code),
-            Purpose = "PasswordReset",
-            ExpiryTimestamp = expiresAt
+            TokenHash = HashToken(rawToken),
+            ExpiryTimestamp = expiresAt,
+            IsUsed = false,
+            CreatedAt = AppTime.Now
         });
         await _db.SaveChangesAsync();
 
-        await _email.SendOtpCodeEmailAsync(user.Email, user.FullName, code);
+        var frontendBase = (_config["App:FrontendBaseUrl"] ?? "https://equameridian-hub.onrender.com").TrimEnd('/');
+        var resetUrl = $"{frontendBase}/auth/reset-password?token={Uri.EscapeDataString(rawToken)}";
 
-        await _audit.LogAsync(user.UserID, "PASSWORD_RESET_OTP_ISSUED",
-            "Password reset OTP issued", null, null, null, ip);
+        await _email.SendPasswordResetEmailAsync(user.Email, user.FullName, resetUrl);
 
-        return new ForgotPasswordResponse
-        {
-            Message = "If that email is registered, a 6-digit code has been sent to it.",
-            OtpReference = reference,
-            OtpExpiresAt = expiresAt
-        };
+        await _audit.LogAsync(user.UserID, "PASSWORD_RESET_LINK_ISSUED",
+            "Password reset link emailed", null, null, null, ip);
+
+        return genericResponse;
     }
 
-    public async Task<(bool Success, string Message)> VerifyResetOtpAsync(VerifyResetOtpRequest dto, string ip)
+    public async Task<(bool Success, string Message)> ResetPasswordAsync(ResetPasswordRequest dto, string ip)
     {
-        var record = await _db.OtpCodes
-            .Include(o => o.User)
-            .FirstOrDefaultAsync(o => o.Reference == dto.OtpReference
-                && o.Purpose == "PasswordReset"
-                && !o.IsUsed && o.ExpiryTimestamp > AppTime.Now);
+        if (string.IsNullOrWhiteSpace(dto.Token))
+            return (false, "Reset token is missing or invalid.");
+
+        var tokenHash = HashToken(dto.Token.Trim());
+        var record = await _db.PasswordReset
+            .Include(p => p.User)
+            .FirstOrDefaultAsync(p => p.TokenHash == tokenHash
+                && !p.IsUsed
+                && p.ExpiryTimestamp > AppTime.Now);
 
         if (record == null)
-            return (false, "Code is invalid, expired, or already used.");
-
-        if (record.AttemptCount >= 5)
-        {
-            record.IsUsed = true;
-            await _db.SaveChangesAsync();
-            return (false, "Too many incorrect attempts. Please request a new code.");
-        }
-
-        if (record.CodeHash != HashToken(dto.Code))
-        {
-            record.AttemptCount++;
-            await _db.SaveChangesAsync();
-            return (false, "Incorrect code. Please try again.");
-        }
+            return (false, "This reset link is invalid, expired, or has already been used.");
 
         record.IsUsed = true;
         var user = record.User;
         user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.NewPassword);
-        // A password reset is also a good moment to clear any lingering lockout state —
-        // the person has just proven ownership of the account via email.
-        user.AccountStatus = user.AccountStatus == "Locked" ? "Active" : user.AccountStatus;
+        // Clear lockout — ownership of the email inbox was just proven.
+        if (user.AccountStatus == "Locked")
+            user.AccountStatus = "Active";
         user.FailedAttemptCount = 0;
         user.LockoutExpiry = null;
         await _db.SaveChangesAsync();
 
         await _email.SendPasswordChangedNotificationAsync(user.Email, user.FullName);
         await _audit.LogAsync(user.UserID, "PASSWORD_RESET_COMPLETE",
-            "Password reset via OTP", null, null, null, ip);
+            "Password reset via email link", null, null, null, ip);
 
         return (true, "Password reset successfully.");
     }
+
     public async Task<(bool Success, string Message)> RegisterAsync(RegisterRequest dto, string ip)
     {
         var isContractor = dto.Role.Equals("Contractor", StringComparison.OrdinalIgnoreCase);

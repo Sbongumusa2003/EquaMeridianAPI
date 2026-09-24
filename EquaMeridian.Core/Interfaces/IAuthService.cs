@@ -8,7 +8,7 @@ public interface IAuthService
     Task<(bool Success, string Message)> SetTwoFactorEnabledAsync(int userId, bool enabled, string password);
     Task LogoutAsync(int userId, string token);
     Task<ForgotPasswordResponse> ForgotPasswordAsync(string email, string ipAddress);
-    Task<(bool Success, string Message)> VerifyResetOtpAsync(VerifyResetOtpRequest dto, string ipAddress);
+    Task<(bool Success, string Message)> ResetPasswordAsync(ResetPasswordRequest dto, string ipAddress);
     Task<(bool Success, string Message)> RegisterAsync(RegisterRequest dto, string ipAddress);
     Task<(bool Success, string Message)> RegisterSupplierAsync(RegisterSupplierRequest dto, string ipAddress);
 }

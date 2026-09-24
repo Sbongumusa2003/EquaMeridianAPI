@@ -105,15 +105,14 @@ public class AuthController : ControllerBase
         return Ok(result);
     }
 
-    /// <summary>Second step of the forgot-password flow: exchange the OTP reference + code +
-    /// new password for a completed reset.</summary>
+    /// <summary>Completes password reset using the single-use token from the email reset link.</summary>
     [HttpPost("reset-password")]
-    public async Task<IActionResult> ResetPassword([FromBody] VerifyResetOtpRequest dto)
+    public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequest dto)
     {
         if (!ModelState.IsValid) return BadRequest(ModelState);
 
         var ip = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
-        var (success, message) = await _auth.VerifyResetOtpAsync(dto, ip);
+        var (success, message) = await _auth.ResetPasswordAsync(dto, ip);
         if (!success) return BadRequest(new { message });
         return Ok(new { message });
     }

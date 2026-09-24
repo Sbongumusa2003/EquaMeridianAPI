@@ -145,7 +145,21 @@ public class UsersController : ControllerBase
         await _audit.LogAsync(user!.UserID, "INTERNAL_USER_CREATED",
             $"Admin created a {normalizedRole} account for {dto.Email}", adminId, null, null, ip);
 
-        await _email.SendInternalAccountCreatedEmailAsync(user.Email, user.FullName, normalizedRole, temporaryPassword);
+        // Temporary password is only sent by email — never returned in the API response.
+        var emailSent = true;
+        string? emailError = null;
+        try
+        {
+            await _email.SendInternalAccountCreatedEmailAsync(
+                user.Email, user.FullName, normalizedRole, temporaryPassword);
+        }
+        catch (Exception ex)
+        {
+            emailSent = false;
+            emailError = ex.Message;
+            await _audit.LogAsync(user.UserID, "NOTIFICATION_DISPATCH_FAILED",
+                $"SendInternalAccountCreatedEmail failed: {ex.Message}", adminId, null, null, ip);
+        }
 
         return CreatedAtAction(nameof(GetAll), new { }, new
         {
@@ -153,7 +167,12 @@ public class UsersController : ControllerBase
             fullName = user.FullName,
             email = user.Email,
             role = user.Role,
-            accountStatus = user.AccountStatus
+            accountStatus = user.AccountStatus,
+            temporaryPasswordEmailed = emailSent,
+            message = emailSent
+                ? "Account created. A temporary password has been emailed to the user."
+                : $"Account created, but the temporary-password email could not be sent ({emailError}). " +
+                  "Check Email__SendGridApiKey on Render and resend credentials from support if needed."
         });
     }
 

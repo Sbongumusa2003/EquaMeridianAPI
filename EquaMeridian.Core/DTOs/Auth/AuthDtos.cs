@@ -149,18 +149,16 @@ namespace EquaMeridian.DTOs.Auth
     public class ForgotPasswordResponse
     {
         public string Message { get; set; } = string.Empty;
-        public string OtpReference { get; set; } = string.Empty;
-        public DateTime OtpExpiresAt { get; set; }
     }
 
-    public class VerifyResetOtpRequest
+    /// <summary>
+    /// Completes a password reset using the single-use token from the reset email link
+    /// (query param ?token=… on the frontend /auth/reset-password page).
+    /// </summary>
+    public class ResetPasswordRequest
     {
         [Required]
-        public string OtpReference { get; set; } = string.Empty;
-
-        [Required]
-        [StringLength(6, MinimumLength = 6, ErrorMessage = "Code must be 6 digits.")]
-        public string Code { get; set; } = string.Empty;
+        public string Token { get; set; } = string.Empty;
 
         [Required]
         [MinLength(8, ErrorMessage = "Password must be at least 8 characters.")]
