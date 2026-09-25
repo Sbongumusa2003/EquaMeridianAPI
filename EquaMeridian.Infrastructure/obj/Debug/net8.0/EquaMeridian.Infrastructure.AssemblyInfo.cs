@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("EquaMeridian.Infrastructure")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+3f9a4353aa81247e44c53d5f5055ad5b29225871")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+9a14040224696895695a8def4b9da919d9a73a16")]
 [assembly: System.Reflection.AssemblyProductAttribute("EquaMeridian.Infrastructure")]
 [assembly: System.Reflection.AssemblyTitleAttribute("EquaMeridian.Infrastructure")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
