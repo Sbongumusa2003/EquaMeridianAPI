@@ -40,6 +40,22 @@ public class AdminDocumentsController : ControllerBase
         return doc == null ? NotFound() : Ok(doc);
     }
 
+    /// <summary>
+    /// Streams the document's bytes for admin viewing. Content lives in Postgres (durable
+    /// across Render redeploys); do not rely on the legacy /uploads static path for this.
+    /// </summary>
+    [HttpGet("{docId}/file")]
+    public async Task<IActionResult> GetFile(int docId)
+    {
+        var result = await _repo.GetContentForAdminAsync(docId);
+        if (result is null)
+            return NotFound(new { message = "This document's file could not be found. It may need to be re-uploaded." });
+
+        var (content, contentType, docName) = result.Value;
+        Response.Headers["Content-Disposition"] = $"inline; filename=\"{docName}\"";
+        return File(content, contentType);
+    }
+
     [HttpGet("checklist/{userId}")]
     public async Task<IActionResult> GetChecklist(int userId)
     {

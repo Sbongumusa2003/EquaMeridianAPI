@@ -261,6 +261,11 @@ using (var scope = app.Services.CreateScope())
         ALTER TABLE "ListingImages" ADD COLUMN IF NOT EXISTS "Content" bytea NULL;
         ALTER TABLE "ListingImages" ADD COLUMN IF NOT EXISTS "ContentType" text NULL;
         """);
+    // Durable verification documents: store bytes in Postgres (Render disk is ephemeral).
+    await db.Database.ExecuteSqlRawAsync("""
+        ALTER TABLE "Documents" ADD COLUMN IF NOT EXISTS "Content" bytea NULL;
+        ALTER TABLE "Documents" ADD COLUMN IF NOT EXISTS "ContentType" text NULL;
+        """);
     await DataSeeder.SeedAsync(db, builder.Configuration);
     // DatabaseObjectsInitializer contains SQL Server-specific T-SQL.
     // Disabled for PostgreSQL deployment on Render.

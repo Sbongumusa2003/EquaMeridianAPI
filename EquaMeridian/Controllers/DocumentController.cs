@@ -45,6 +45,18 @@ public class DocumentController : ControllerBase
         return Ok(docs);
     }
 
+    [HttpGet("{docId}/file")]
+    public async Task<IActionResult> GetFile(int docId)
+    {
+        var result = await _repo.GetContentForOwnerAsync(UserId, docId);
+        if (result is null)
+            return NotFound(new { message = "This document's file could not be found. It may need to be re-uploaded." });
+
+        var (content, contentType, docName) = result.Value;
+        Response.Headers["Content-Disposition"] = $"inline; filename=\"{docName}\"";
+        return File(content, contentType);
+    }
+
     [HttpPost]
     [RequestSizeLimit(15_000_000)]
     [Consumes("multipart/form-data")]

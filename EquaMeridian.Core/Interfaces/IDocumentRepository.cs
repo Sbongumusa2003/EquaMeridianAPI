@@ -20,4 +20,16 @@ public interface IDocumentRepository
     Task<bool> HasApprovedDocumentAsync(int userId);
     Task<bool> AreRequiredDocumentsApprovedAsync(int userId, string role);
     Task<List<RequiredDocumentStatusDto>> GetDocumentChecklistAsync(int userId, string role);
+
+    /// <summary>
+    /// Returns the stored file bytes for admin viewing/download, regardless of owner.
+    /// Falls back to reading from disk (ContentRoot + FilePath) for legacy rows with no Content.
+    /// </summary>
+    Task<(byte[] Content, string ContentType, string DocName)?> GetContentForAdminAsync(int docId);
+
+    /// <summary>
+    /// Same as <see cref="GetContentForAdminAsync"/> but scoped to the owning user, for
+    /// the supplier's own "my documents" view.
+    /// </summary>
+    Task<(byte[] Content, string ContentType, string DocName)?> GetContentForOwnerAsync(int userId, int docId);
 }

@@ -9,6 +9,14 @@ public class DocumentRepository : IDocumentRepository
 {
     private static readonly HashSet<string> ValidDecisions = new() { "Accepted", "Rejected" };
 
+    private static readonly Dictionary<string, string> ExtToContentType = new(StringComparer.OrdinalIgnoreCase)
+    {
+        [".pdf"] = "application/pdf",
+        [".jpg"] = "image/jpeg",
+        [".jpeg"] = "image/jpeg",
+        [".png"] = "image/png",
+    };
+
     private readonly AppDbContext _db;
     private readonly IWebHostEnvironment _env;
 
@@ -58,24 +66,34 @@ public class DocumentRepository : IDocumentRepository
 
         var ext = Path.GetExtension(file.FileName).ToLowerInvariant();
 
+        await using var ms = new MemoryStream();
+        await file.CopyToAsync(ms);
+        var bytes = ms.ToArray();
+
+        var contentType = file.ContentType;
+        if (string.IsNullOrWhiteSpace(contentType) || contentType == "application/octet-stream")
+            contentType = ExtToContentType.GetValueOrDefault(ext, "application/octet-stream");
+
+        // Disk write is best-effort only (local dev convenience). Render's disk is ephemeral,
+        // so Content in Postgres — set below — is the source of truth for GetContentForAdminAsync.
         var uploadPath = Path.Combine(
             _env.ContentRootPath, "uploads", "documents", userId.ToString());
-
-        Directory.CreateDirectory(uploadPath);
-
         var fileName = $"{Guid.NewGuid()}{ext}";
         var fullPath = Path.Combine(uploadPath, fileName);
-
-        using (var stream = File.Create(fullPath))
-            await file.CopyToAsync(stream);
-
-        var relativeUrl = $"/uploads/documents/{userId}/{fileName}";
+        try
+        {
+            Directory.CreateDirectory(uploadPath);
+            await File.WriteAllBytesAsync(fullPath, bytes);
+        }
+        catch { /* best effort — DB copy below is authoritative */ }
 
         var doc = new Document
         {
             DocTypeID = docTypeId,
             DocName = file.FileName,
-            FilePath = relativeUrl,
+            FilePath = $"/uploads/documents/{userId}/{fileName}",
+            Content = bytes,
+            ContentType = contentType,
             VerificationStatus = "Pending",
             UserID = userId,
             UploadedDate = AppTime.Now
@@ -98,26 +116,39 @@ public class DocumentRepository : IDocumentRepository
 
         if (doc == null) return (false, "Not found.");
 
+        await using var ms = new MemoryStream();
+        await file.CopyToAsync(ms);
+        var bytes = ms.ToArray();
+
+        var contentType = file.ContentType;
+        if (string.IsNullOrWhiteSpace(contentType) || contentType == "application/octet-stream")
+            contentType = ExtToContentType.GetValueOrDefault(ext, "application/octet-stream");
+
+        // Disk write is best-effort only — Content in Postgres (set below) is authoritative.
         var uploadPath = Path.Combine(
             _env.ContentRootPath, "uploads", "documents", userId.ToString());
-        Directory.CreateDirectory(uploadPath);
-
-        var oldRelative = (doc.FilePath ?? string.Empty).TrimStart('/').Replace('/', Path.DirectorySeparatorChar);
-        var oldFullPath = Path.Combine(_env.ContentRootPath, oldRelative);
-        if (File.Exists(oldFullPath))
-        {
-            try { File.Delete(oldFullPath); }
-            catch { /* best effort — do not block replace if old file is locked */ }
-        }
-
         var fileName = $"{Guid.NewGuid()}{ext}";
         var fullPath = Path.Combine(uploadPath, fileName);
+        try
+        {
+            Directory.CreateDirectory(uploadPath);
 
-        using (var stream = File.Create(fullPath))
-            await file.CopyToAsync(stream);
+            var oldRelative = (doc.FilePath ?? string.Empty).TrimStart('/').Replace('/', Path.DirectorySeparatorChar);
+            var oldFullPath = Path.Combine(_env.ContentRootPath, oldRelative);
+            if (File.Exists(oldFullPath))
+            {
+                try { File.Delete(oldFullPath); }
+                catch { /* best effort — do not block replace if old file is locked */ }
+            }
+
+            await File.WriteAllBytesAsync(fullPath, bytes);
+        }
+        catch { /* best effort — DB copy below is authoritative */ }
 
         doc.DocName = file.FileName;
         doc.FilePath = $"/uploads/documents/{userId}/{fileName}";
+        doc.Content = bytes;
+        doc.ContentType = contentType;
         doc.VerificationStatus = "Pending";
         doc.UploadedDate = AppTime.Now;
         doc.RejectionReason = null;
@@ -228,6 +259,67 @@ public class DocumentRepository : IDocumentRepository
             OwnerID = doc.UserID,
             AccountActivated = accountActivated
         };
+    }
+
+    public async Task<(byte[] Content, string ContentType, string DocName)?> GetContentForAdminAsync(int docId)
+    {
+        var doc = await _db.Documents
+            .AsNoTracking()
+            .Where(d => d.DocID == docId)
+            .Select(d => new { d.Content, d.ContentType, d.DocName, d.FilePath })
+            .FirstOrDefaultAsync();
+
+        if (doc == null) return null;
+
+        if (doc.Content is { Length: > 0 })
+        {
+            var ct = string.IsNullOrWhiteSpace(doc.ContentType) ? "application/octet-stream" : doc.ContentType!;
+            return (doc.Content, ct, doc.DocName);
+        }
+
+        // Legacy fallback for rows uploaded before Content was stored in Postgres.
+        return await TryReadFromDiskAsync(doc.FilePath, doc.DocName);
+    }
+
+    public async Task<(byte[] Content, string ContentType, string DocName)?> GetContentForOwnerAsync(int userId, int docId)
+    {
+        var doc = await _db.Documents
+            .AsNoTracking()
+            .Where(d => d.DocID == docId && d.UserID == userId)
+            .Select(d => new { d.Content, d.ContentType, d.DocName, d.FilePath })
+            .FirstOrDefaultAsync();
+
+        if (doc == null) return null;
+
+        if (doc.Content is { Length: > 0 })
+        {
+            var ct = string.IsNullOrWhiteSpace(doc.ContentType) ? "application/octet-stream" : doc.ContentType!;
+            return (doc.Content, ct, doc.DocName);
+        }
+
+        return await TryReadFromDiskAsync(doc.FilePath, doc.DocName);
+    }
+
+    private async Task<(byte[] Content, string ContentType, string DocName)?> TryReadFromDiskAsync(
+        string? filePath, string docName)
+    {
+        if (string.IsNullOrWhiteSpace(filePath)) return null;
+
+        var relative = filePath.TrimStart('/').Replace('/', Path.DirectorySeparatorChar);
+        var fullPath = Path.Combine(_env.ContentRootPath, relative);
+        if (!File.Exists(fullPath)) return null;
+
+        try
+        {
+            var bytes = await File.ReadAllBytesAsync(fullPath);
+            var ext = Path.GetExtension(fullPath).ToLowerInvariant();
+            var contentType = ExtToContentType.GetValueOrDefault(ext, "application/octet-stream");
+            return (bytes, contentType, docName);
+        }
+        catch
+        {
+            return null;
+        }
     }
 
     public async Task<bool> HasApprovedDocumentAsync(int userId)
