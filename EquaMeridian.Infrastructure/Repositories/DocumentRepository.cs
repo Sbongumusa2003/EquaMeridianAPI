@@ -24,7 +24,33 @@ public class DocumentRepository : IDocumentRepository
             .Where(d => d.UserID == userId)
             .ToListAsync();
 
+    public async Task<IEnumerable<UserDocumentDto>> GetByUserDtoAsync(int userId)
+        => await _db.Documents
+            .AsNoTracking()
+            .Where(d => d.UserID == userId)
+            .OrderByDescending(d => d.UploadedDate)
+            .Select(d => new UserDocumentDto
+            {
+                DocID = d.DocID,
+                DocTypeID = d.DocTypeID,
+                DocName = d.DocName,
+                FilePath = d.FilePath,
+                VerificationStatus = d.VerificationStatus,
+                UploadedDate = d.UploadedDate,
+                RejectionReason = d.RejectionReason
+            })
+            .ToListAsync();
+
     public async Task<int> UploadAsync(int userId, int docTypeId, IFormFile file)
+    {
+        var (doc, _) = await PrepareUploadAsync(userId, docTypeId, file);
+        _db.Documents.Add(doc);
+        await _db.SaveChangesAsync();
+        return doc.DocID;
+    }
+
+    public async Task<(Document Entity, string FullPath)> PrepareUploadAsync(
+        int userId, int docTypeId, IFormFile file)
     {
         var validationError = DocumentUploadPolicy.Validate(file);
         if (validationError != null)
@@ -51,12 +77,11 @@ public class DocumentRepository : IDocumentRepository
             DocName = file.FileName,
             FilePath = relativeUrl,
             VerificationStatus = "Pending",
-            UserID = userId
+            UserID = userId,
+            UploadedDate = AppTime.Now
         };
-        _db.Documents.Add(doc);
-        await _db.SaveChangesAsync();
 
-        return doc.DocID;
+        return (doc, fullPath);
     }
 
     public async Task<(bool Success, string Message)> ReplaceAsync(
@@ -77,9 +102,13 @@ public class DocumentRepository : IDocumentRepository
             _env.ContentRootPath, "uploads", "documents", userId.ToString());
         Directory.CreateDirectory(uploadPath);
 
-        var oldFullPath = Path.Combine(_env.ContentRootPath, doc.FilePath.TrimStart('/'));
+        var oldRelative = (doc.FilePath ?? string.Empty).TrimStart('/').Replace('/', Path.DirectorySeparatorChar);
+        var oldFullPath = Path.Combine(_env.ContentRootPath, oldRelative);
         if (File.Exists(oldFullPath))
-            File.Delete(oldFullPath);
+        {
+            try { File.Delete(oldFullPath); }
+            catch { /* best effort — do not block replace if old file is locked */ }
+        }
 
         var fileName = $"{Guid.NewGuid()}{ext}";
         var fullPath = Path.Combine(uploadPath, fileName);
@@ -91,6 +120,9 @@ public class DocumentRepository : IDocumentRepository
         doc.FilePath = $"/uploads/documents/{userId}/{fileName}";
         doc.VerificationStatus = "Pending";
         doc.UploadedDate = AppTime.Now;
+        doc.RejectionReason = null;
+        doc.VerifiedByUserID = null;
+        doc.VerifiedDate = null;
         await _db.SaveChangesAsync();
 
         return (true, "Document successfully replaced.");

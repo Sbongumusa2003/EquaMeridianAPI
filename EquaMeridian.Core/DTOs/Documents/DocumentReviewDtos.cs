@@ -48,4 +48,19 @@ namespace EquaMeridian.DTOs.Documents
 
         public bool AccountActivated { get; set; }
     }
+
+    /// <summary>
+    /// Lightweight DTO returned to the owning user for "My Documents".
+    /// Avoids serializing EF navigation properties (User / DocType).
+    /// </summary>
+    public class UserDocumentDto
+    {
+        public int DocID { get; set; }
+        public int DocTypeID { get; set; }
+        public string DocName { get; set; } = string.Empty;
+        public string FilePath { get; set; } = string.Empty;
+        public string VerificationStatus { get; set; } = string.Empty;
+        public DateTime UploadedDate { get; set; }
+        public string? RejectionReason { get; set; }
+    }
 }

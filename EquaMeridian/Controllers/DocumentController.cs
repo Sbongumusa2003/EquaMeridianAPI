@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using EquaMeridian.Infrastructure.Data;
@@ -40,12 +40,15 @@ public class DocumentController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetMyDocuments()
     {
-        var docs = await _repo.GetByUserAsync(UserId);
+        // Return a flat DTO so JSON never tries to serialise EF navigation properties
+        // (User / DocType), which previously caused client-side "conflict"/parse failures.
+        var docs = await _repo.GetByUserDtoAsync(UserId);
         return Ok(docs);
     }
 
     [HttpPost]
-    public async Task<IActionResult> Upload([FromForm] int docTypeId, IFormFile file)
+    [RequestSizeLimit(15_000_000)]
+    public async Task<IActionResult> Upload([FromForm] int docTypeId, [FromForm] IFormFile file)
     {
         if (file == null || file.Length == 0)
             return BadRequest(new { message = "Please add a document." });
@@ -73,7 +76,8 @@ public class DocumentController : ControllerBase
     }
 
     [HttpPut("{docId}")]
-    public async Task<IActionResult> Replace(int docId, IFormFile file)
+    [RequestSizeLimit(15_000_000)]
+    public async Task<IActionResult> Replace(int docId, [FromForm] IFormFile file)
     {
         if (file == null || file.Length == 0)
             return BadRequest(new { message = "Please add a document." });

@@ -125,7 +125,7 @@ public class AuthController : ControllerBase
         var ip = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
         var (success, message) = await _auth.RegisterAsync(dto, ip);
 
-        if (!success) return Conflict(new { message });
+        if (!success) return RegistrationFailure(message);
         return Ok(new { message });
     }
 
@@ -139,8 +139,21 @@ public class AuthController : ControllerBase
         var ip = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
         var (success, message) = await _auth.RegisterSupplierAsync(dto, ip);
 
-        if (!success) return Conflict(new { message });
+        if (!success) return RegistrationFailure(message);
         return Ok(new { message });
+    }
+
+    /// <summary>
+    /// 409 Conflict only for true uniqueness collisions (email/phone already taken).
+    /// All other registration problems are 400 Bad Request so the UI does not
+    /// surface a misleading "conflict error" for document validation failures.
+    /// </summary>
+    private static IActionResult RegistrationFailure(string message)
+    {
+        var lower = (message ?? string.Empty).ToLowerInvariant();
+        if (lower.Contains("already exists") || lower.Contains("already registered") || lower.Contains("already in use"))
+            return new ConflictObjectResult(new { message });
+        return new BadRequestObjectResult(new { message });
     }
 
     private static string FormatModelStateErrors(Microsoft.AspNetCore.Mvc.ModelBinding.ModelStateDictionary modelState)

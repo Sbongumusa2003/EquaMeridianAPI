@@ -445,15 +445,21 @@ public class AuthService : IAuthService
                     // per-listing, at listing creation, so each lease is tied to that specific listing.
                 };
                 _db.Users.Add(newUser);
+                // Persist the user first so we have a real UserID for the document folder path.
                 await _db.SaveChangesAsync();
 
+                // PrepareUploadAsync writes the file to disk and builds the entity WITHOUT
+                // calling SaveChanges. A single SaveChanges below commits all documents
+                // inside the same transaction — avoids nested SaveChanges inside the
+                // EF execution-strategy transaction (previous source of registration failures).
                 for (var i = 0; i < dto.Documents.Count; i++)
                 {
-                    var docId = await _documents.UploadAsync(newUser.UserID, dto.DocTypeIds[i], dto.Documents[i]);
-                    var doc = await _db.Documents.FindAsync(docId);
-                    if (doc != null)
-                        writtenFilePaths.Add(Path.Combine(_env.ContentRootPath, doc.FilePath.TrimStart('/')));
+                    var (entity, fullPath) = await _documents.PrepareUploadAsync(
+                        newUser.UserID, dto.DocTypeIds[i], dto.Documents[i]);
+                    _db.Documents.Add(entity);
+                    writtenFilePaths.Add(fullPath);
                 }
+                await _db.SaveChangesAsync();
 
                 await transaction.CommitAsync();
                 return newUser;
