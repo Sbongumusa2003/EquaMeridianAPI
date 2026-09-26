@@ -369,7 +369,8 @@ public class PaymentsController : ControllerBase
     [Authorize]
     [HttpPost("invoices/{invoiceId}/eft-proof")]
     [RequestSizeLimit(10_000_000)]
-    public async Task<IActionResult> UploadEftProof(int invoiceId, IFormFile file)
+    [Consumes("multipart/form-data")]
+    public async Task<IActionResult> UploadEftProof(int invoiceId, [FromForm] IFormFile file)
     {
         var invoice = await _db.Invoices.FirstOrDefaultAsync(i => i.InvoiceID == invoiceId);
         if (invoice == null) return NotFound(new { message = "Invoice not found." });

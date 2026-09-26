@@ -86,9 +86,6 @@ namespace EquaMeridian.DTOs.Auth
         public string? PhoneNumber { get; set; }
 
         [Required]
-        public List<Microsoft.AspNetCore.Http.IFormFile> Documents { get; set; } = new();
-
-        [Required]
         public List<int> DocTypeIds { get; set; } = new();
     }
 

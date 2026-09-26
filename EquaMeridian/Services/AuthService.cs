@@ -368,7 +368,8 @@ public class AuthService : IAuthService
         return (true, "Account created. You can now log in.");
     }
 
-    public async Task<(bool Success, string Message)> RegisterSupplierAsync(RegisterSupplierRequest dto, string ip)
+    public async Task<(bool Success, string Message)> RegisterSupplierAsync(
+        RegisterSupplierRequest dto, List<Microsoft.AspNetCore.Http.IFormFile>? documents, string ip)
     {
         var existing = await _db.Users.FirstOrDefaultAsync(u => u.Email.ToLower() == dto.Email.Trim().ToLower());
         if (existing != null)
@@ -390,10 +391,10 @@ public class AuthService : IAuthService
                 return (false, phoneCheck);
         }
 
-        if (dto.Documents == null || dto.Documents.Count == 0)
+        if (documents == null || documents.Count == 0)
             return (false, "Please upload at least one verification document (e.g. business registration certificate) to complete supplier registration.");
 
-        if (dto.DocTypeIds == null || dto.DocTypeIds.Count != dto.Documents.Count)
+        if (dto.DocTypeIds == null || dto.DocTypeIds.Count != documents.Count)
             return (false, "Each uploaded document must have a matching document type.");
         var duplicateTypeIds = dto.DocTypeIds
             .GroupBy(id => id)
@@ -402,7 +403,7 @@ public class AuthService : IAuthService
             .ToList();
         if (duplicateTypeIds.Count > 0)
             return (false, "Each document type can only be submitted once. Please remove the duplicate uploads and try again.");
-        foreach (var file in dto.Documents)
+        foreach (var file in documents)
         {
             var validationError = EquaMeridian.Core.Validation.DocumentUploadPolicy.Validate(file);
             if (validationError != null)
@@ -452,10 +453,10 @@ public class AuthService : IAuthService
                 // calling SaveChanges. A single SaveChanges below commits all documents
                 // inside the same transaction — avoids nested SaveChanges inside the
                 // EF execution-strategy transaction (previous source of registration failures).
-                for (var i = 0; i < dto.Documents.Count; i++)
+                for (var i = 0; i < documents.Count; i++)
                 {
                     var (entity, fullPath) = await _documents.PrepareUploadAsync(
-                        newUser.UserID, dto.DocTypeIds[i], dto.Documents[i]);
+                        newUser.UserID, dto.DocTypeIds[i], documents[i]);
                     _db.Documents.Add(entity);
                     writtenFilePaths.Add(fullPath);
                 }
@@ -466,7 +467,7 @@ public class AuthService : IAuthService
             });
 
             await _audit.LogAsync(user.UserID, "USER_REGISTERED",
-                $"New Supplier account registered: {dto.Email} ({dto.Documents.Count} document(s) submitted for review)",
+                $"New Supplier account registered: {dto.Email} ({documents.Count} document(s) submitted for review)",
                 null, null, null, ip);
 
             var adminEmail = _config["AdminEmail"] ?? "admin@equameridian.co.za";

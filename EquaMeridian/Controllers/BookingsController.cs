@@ -186,6 +186,7 @@ public class BookingsController : ControllerBase
 
     [HttpPost("{bookingId}/confirm-return")]
     [Authorize(Policy = "SupplierOnly")]
+    [Consumes("multipart/form-data")]
     public async Task<IActionResult> ConfirmReturn(
         int bookingId, [FromForm] ConfirmReturnDto dto, [FromForm] List<IFormFile>? photos)
     {

@@ -22,6 +22,7 @@ public class BookingDisputesController : ControllerBase
     private int UserId => int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
     private string Role => User.FindFirstValue(ClaimTypes.Role) ?? string.Empty;
     [HttpPost]
+    [Consumes("multipart/form-data")]
     public async Task<IActionResult> Raise(
         int bookingId, [FromForm] RaiseDisputeDto dto, [FromForm] List<IFormFile>? evidence)
     {

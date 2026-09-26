@@ -10,5 +10,8 @@ public interface IAuthService
     Task<ForgotPasswordResponse> ForgotPasswordAsync(string email, string ipAddress);
     Task<(bool Success, string Message)> ResetPasswordAsync(ResetPasswordRequest dto, string ipAddress);
     Task<(bool Success, string Message)> RegisterAsync(RegisterRequest dto, string ipAddress);
-    Task<(bool Success, string Message)> RegisterSupplierAsync(RegisterSupplierRequest dto, string ipAddress);
+    Task<(bool Success, string Message)> RegisterSupplierAsync(
+        RegisterSupplierRequest dto,
+        List<Microsoft.AspNetCore.Http.IFormFile>? documents,
+        string ipAddress);
 }

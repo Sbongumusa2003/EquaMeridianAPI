@@ -74,7 +74,8 @@ public class JobDocumentsController : ControllerBase
     }
 
     [HttpPost("api/lease-agreements/{leaseAgreementId}/documents")]
-    public async Task<IActionResult> Upload(int leaseAgreementId, [FromForm] string documentType, IFormFile file)
+    [Consumes("multipart/form-data")]
+    public async Task<IActionResult> Upload(int leaseAgreementId, [FromForm] string documentType, [FromForm] IFormFile file)
     {
         if (file == null || file.Length == 0)
             return BadRequest(new { message = "Please add a document." });

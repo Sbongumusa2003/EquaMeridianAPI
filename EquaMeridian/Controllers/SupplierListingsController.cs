@@ -121,7 +121,7 @@ public class SupplierListingsController : ControllerBase
 
     [HttpPost("import")]
     [Consumes("multipart/form-data")]
-    public async Task<IActionResult> ImportFromExcel(IFormFile? file)
+    public async Task<IActionResult> ImportFromExcel([FromForm] IFormFile? file)
     {
         if (file == null || file.Length == 0)
             return BadRequest(new { message = "Please choose an Excel (.xlsx) file to upload." });
@@ -404,6 +404,7 @@ public class SupplierListingsController : ControllerBase
     }
 
     [HttpPost("{listingId}/images")]
+    [Consumes("multipart/form-data")]
     public async Task<IActionResult> UploadImages(
         int listingId, [FromForm] IFormFileCollection files)
     {

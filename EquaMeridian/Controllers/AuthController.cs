@@ -131,13 +131,16 @@ public class AuthController : ControllerBase
 
     [HttpPost("register/supplier")]
     [RequestSizeLimit(50_000_000)]
-    public async Task<IActionResult> RegisterSupplier([FromForm] RegisterSupplierRequest dto)
+    [Consumes("multipart/form-data")]
+    public async Task<IActionResult> RegisterSupplier(
+        [FromForm] RegisterSupplierRequest dto,
+        [FromForm] List<IFormFile>? documents)
     {
         if (!ModelState.IsValid)
             return BadRequest(new { message = FormatModelStateErrors(ModelState) });
 
         var ip = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
-        var (success, message) = await _auth.RegisterSupplierAsync(dto, ip);
+        var (success, message) = await _auth.RegisterSupplierAsync(dto, documents, ip);
 
         if (!success) return RegistrationFailure(message);
         return Ok(new { message });

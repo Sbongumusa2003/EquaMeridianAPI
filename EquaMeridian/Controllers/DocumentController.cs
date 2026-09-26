@@ -47,6 +47,7 @@ public class DocumentController : ControllerBase
 
     [HttpPost]
     [RequestSizeLimit(15_000_000)]
+    [Consumes("multipart/form-data")]
     public async Task<IActionResult> Upload([FromForm] int docTypeId, [FromForm] IFormFile file)
     {
         if (file == null || file.Length == 0)
@@ -76,6 +77,7 @@ public class DocumentController : ControllerBase
 
     [HttpPut("{docId}")]
     [RequestSizeLimit(15_000_000)]
+    [Consumes("multipart/form-data")]
     public async Task<IActionResult> Replace(int docId, [FromForm] IFormFile file)
     {
         if (file == null || file.Length == 0)
