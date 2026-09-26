@@ -228,6 +228,29 @@ builder.Services.AddSwaggerGen(c =>
         },
         Array.Empty<string>()
     }});
+
+    // Prevent Swagger schema generation from crashing on file-upload endpoints
+    // (IFormFile / List<IFormFile> used by document + supplier registration actions).
+    // Without these maps, /swagger/v1/swagger.json returns HTTP 500.
+    c.MapType<Microsoft.AspNetCore.Http.IFormFile>(() => new OpenApiSchema
+    {
+        Type = "string",
+        Format = "binary"
+    });
+    c.MapType<IEnumerable<Microsoft.AspNetCore.Http.IFormFile>>(() => new OpenApiSchema
+    {
+        Type = "array",
+        Items = new OpenApiSchema { Type = "string", Format = "binary" }
+    });
+    c.MapType<List<Microsoft.AspNetCore.Http.IFormFile>>(() => new OpenApiSchema
+    {
+        Type = "array",
+        Items = new OpenApiSchema { Type = "string", Format = "binary" }
+    });
+    // Avoid schema-id collisions between nested / similarly named DTOs.
+    c.CustomSchemaIds(type => (type.FullName ?? type.Name).Replace("+", ".", StringComparison.Ordinal));
+    c.IgnoreObsoleteActions();
+    c.SupportNonNullableReferenceTypes();
 });
 
 var app = builder.Build();
