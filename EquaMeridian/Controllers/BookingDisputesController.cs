@@ -24,7 +24,7 @@ public class BookingDisputesController : ControllerBase
     [HttpPost]
     [Consumes("multipart/form-data")]
     public async Task<IActionResult> Raise(
-        int bookingId, [FromForm] RaiseDisputeDto dto, [FromForm] List<IFormFile>? evidence)
+        int bookingId, [FromForm] RaiseDisputeDto dto, List<IFormFile>? evidence)
     {
         if (!Role.Equals("Contractor", StringComparison.OrdinalIgnoreCase)
             && !Role.Equals("Supplier", StringComparison.OrdinalIgnoreCase))

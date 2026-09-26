@@ -134,7 +134,7 @@ public class AuthController : ControllerBase
     [Consumes("multipart/form-data")]
     public async Task<IActionResult> RegisterSupplier(
         [FromForm] RegisterSupplierRequest dto,
-        [FromForm] List<IFormFile>? documents)
+        List<IFormFile>? documents)
     {
         if (!ModelState.IsValid)
             return BadRequest(new { message = FormatModelStateErrors(ModelState) });

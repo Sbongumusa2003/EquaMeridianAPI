@@ -188,7 +188,7 @@ public class BookingsController : ControllerBase
     [Authorize(Policy = "SupplierOnly")]
     [Consumes("multipart/form-data")]
     public async Task<IActionResult> ConfirmReturn(
-        int bookingId, [FromForm] ConfirmReturnDto dto, [FromForm] List<IFormFile>? photos)
+        int bookingId, [FromForm] ConfirmReturnDto dto, List<IFormFile>? photos)
     {
         if (!ModelState.IsValid) return BadRequest(ModelState);
 

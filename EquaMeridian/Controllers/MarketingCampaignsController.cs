@@ -136,7 +136,7 @@ public class MarketingCampaignsController : ControllerBase
     [HttpPost("api/admin/campaigns/upload-banner")]
     [Authorize(Policy = "AdminOnly")]
     [Consumes("multipart/form-data")]
-    public async Task<IActionResult> UploadBanner([FromForm] IFormFile file)
+    public async Task<IActionResult> UploadBanner(IFormFile file)
     {
         if (file == null || file.Length == 0)
             return BadRequest(new { message = "Please choose an image file." });

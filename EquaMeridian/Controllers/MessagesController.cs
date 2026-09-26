@@ -48,7 +48,7 @@ public class MessagesController : ControllerBase
 
     [HttpPost]
     [Consumes("multipart/form-data")]
-    public async Task<IActionResult> Send([FromForm] SendMessageDto dto, [FromForm] IFormFile? attachment)
+    public async Task<IActionResult> Send([FromForm] SendMessageDto dto, IFormFile? attachment)
     {
         if (!ModelState.IsValid) return BadRequest(ModelState);
 
@@ -75,7 +75,7 @@ public class MessagesController : ControllerBase
 
     [HttpPost("threads/{threadId}/reply")]
     [Consumes("multipart/form-data")]
-    public async Task<IActionResult> Reply(int threadId, [FromForm] ReplyMessageDto dto, [FromForm] IFormFile? attachment)
+    public async Task<IActionResult> Reply(int threadId, [FromForm] ReplyMessageDto dto, IFormFile? attachment)
     {
         if (!ModelState.IsValid) return BadRequest(ModelState);
 

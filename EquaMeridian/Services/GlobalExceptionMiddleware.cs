@@ -60,13 +60,29 @@ public class GlobalExceptionMiddleware
                 statusCode = (int)statusCode,
                 traceId = context.TraceIdentifier,
                 detail = isDev ? ex.ToString()
-                    : isSwagger ? $"{ex.GetType().Name}: {ex.Message}"
+                    : isSwagger ? DescribeExceptionChain(ex)
                     : null
             };
 
             await context.Response.WriteAsync(JsonSerializer.Serialize(body,
                 new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }));
         }
+    }
+
+    // SwaggerGeneratorException's own Message is just "Failed to generate Operation
+    // for action - X. See inner exception" — the actual cause is always in
+    // InnerException. Walk the whole chain so a swagger 500 is self-describing
+    // without needing to flip on full Development mode.
+    private static string DescribeExceptionChain(Exception ex)
+    {
+        var parts = new List<string>();
+        var current = ex;
+        while (current != null)
+        {
+            parts.Add($"{current.GetType().Name}: {current.Message}");
+            current = current.InnerException;
+        }
+        return string.Join(" ---> ", parts);
     }
 
     private static (HttpStatusCode StatusCode, string Message) Map(Exception ex) => ex switch
