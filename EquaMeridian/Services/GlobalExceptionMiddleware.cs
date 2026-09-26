@@ -51,12 +51,17 @@ public class GlobalExceptionMiddleware
             context.Response.ContentType = "application/json";
 
             var isDev = context.RequestServices.GetRequiredService<IWebHostEnvironment>().IsDevelopment();
+            // Always include exception type + message for Swagger generation failures so
+            // deploy issues are diagnosable without enabling full Development mode.
+            var isSwagger = context.Request.Path.StartsWithSegments("/swagger");
             var body = new
             {
                 message = friendlyMessage,
                 statusCode = (int)statusCode,
                 traceId = context.TraceIdentifier,
-                detail = isDev ? ex.ToString() : null
+                detail = isDev ? ex.ToString()
+                    : isSwagger ? $"{ex.GetType().Name}: {ex.Message}"
+                    : null
             };
 
             await context.Response.WriteAsync(JsonSerializer.Serialize(body,

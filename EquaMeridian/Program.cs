@@ -229,28 +229,27 @@ builder.Services.AddSwaggerGen(c =>
         Array.Empty<string>()
     }});
 
-    // Prevent Swagger schema generation from crashing on file-upload endpoints
-    // (IFormFile / List<IFormFile> used by document + supplier registration actions).
-    // Without these maps, /swagger/v1/swagger.json returns HTTP 500.
-    c.MapType<Microsoft.AspNetCore.Http.IFormFile>(() => new OpenApiSchema
-    {
-        Type = "string",
-        Format = "binary"
-    });
-    c.MapType<IEnumerable<Microsoft.AspNetCore.Http.IFormFile>>(() => new OpenApiSchema
+    // File-upload types: without these maps Swashbuckle throws while building
+    // /swagger/v1/swagger.json (HTTP 500) even though runtime uploads work fine.
+    static OpenApiSchema BinaryFile() => new() { Type = "string", Format = "binary" };
+    static OpenApiSchema BinaryFileArray() => new()
     {
         Type = "array",
-        Items = new OpenApiSchema { Type = "string", Format = "binary" }
-    });
-    c.MapType<List<Microsoft.AspNetCore.Http.IFormFile>>(() => new OpenApiSchema
-    {
-        Type = "array",
-        Items = new OpenApiSchema { Type = "string", Format = "binary" }
-    });
-    // Avoid schema-id collisions between nested / similarly named DTOs.
+        Items = BinaryFile()
+    };
+
+    c.MapType<Microsoft.AspNetCore.Http.IFormFile>(BinaryFile);
+    c.MapType<Microsoft.AspNetCore.Http.IFormFileCollection>(BinaryFileArray);
+    c.MapType<IEnumerable<Microsoft.AspNetCore.Http.IFormFile>>(BinaryFileArray);
+    c.MapType<IReadOnlyList<Microsoft.AspNetCore.Http.IFormFile>>(BinaryFileArray);
+    c.MapType<List<Microsoft.AspNetCore.Http.IFormFile>>(BinaryFileArray);
+    c.MapType<Microsoft.AspNetCore.Http.IFormFile[]>(BinaryFileArray);
+
+    // Unique schema ids across namespaces / nested types
     c.CustomSchemaIds(type => (type.FullName ?? type.Name).Replace("+", ".", StringComparison.Ordinal));
     c.IgnoreObsoleteActions();
     c.SupportNonNullableReferenceTypes();
+
 });
 
 var app = builder.Build();

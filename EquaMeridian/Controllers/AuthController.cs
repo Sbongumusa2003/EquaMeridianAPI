@@ -144,9 +144,7 @@ public class AuthController : ControllerBase
     }
 
     /// <summary>
-    /// 409 Conflict only for true uniqueness collisions (email/phone already taken).
-    /// All other registration problems are 400 Bad Request so the UI does not
-    /// surface a misleading "conflict error" for document validation failures.
+    /// 409 only for uniqueness collisions; other registration failures are 400.
     /// </summary>
     private static IActionResult RegistrationFailure(string message)
     {

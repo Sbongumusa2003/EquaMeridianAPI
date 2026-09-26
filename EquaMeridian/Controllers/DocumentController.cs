@@ -40,8 +40,7 @@ public class DocumentController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetMyDocuments()
     {
-        // Return a flat DTO so JSON never tries to serialise EF navigation properties
-        // (User / DocType), which previously caused client-side "conflict"/parse failures.
+        // Flat DTO — avoids EF navigation property serialization issues.
         var docs = await _repo.GetByUserDtoAsync(UserId);
         return Ok(docs);
     }
