@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("EquaMeridian.Tests")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+e472f78f751ff058f87d40d67740457681b250dd")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+f3317c242d2275bca17db6fb246674e91f7b4409")]
 [assembly: System.Reflection.AssemblyProductAttribute("EquaMeridian.Tests")]
 [assembly: System.Reflection.AssemblyTitleAttribute("EquaMeridian.Tests")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

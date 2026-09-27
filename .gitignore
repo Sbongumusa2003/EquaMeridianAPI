@@ -1,1 +1,8 @@
-.vs/ 
+.vs/
+bin/
+obj/
+*.user
+
+# Local secret overrides - never commit real values here
+appsettings.*.local.json
+.env
