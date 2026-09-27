@@ -51,7 +51,7 @@ public class PaymentGatewayService : IPaymentGatewayService
         : "https://www.payfast.co.za/eng/query/validate";
 
     public PaymentInitiationResult CreatePaymentRequest(
-        Invoice invoice, string buyerFirstName, string buyerLastName, string buyerEmail)
+        Invoice invoice, string buyerFirstName, string buyerLastName, string buyerEmail, string? client = null)
     {
         if (string.IsNullOrWhiteSpace(MerchantId) || string.IsNullOrWhiteSpace(MerchantKey))
         {
@@ -62,8 +62,16 @@ public class PaymentGatewayService : IPaymentGatewayService
             return new PaymentInitiationResult { ProcessUrl = string.Empty, Fields = new() };
         }
 
-        var returnUrl = _config["PayFast:ReturnUrl"] ?? $"{_config["App:FrontendBaseUrl"]}/payments/success";
-        var cancelUrl = _config["PayFast:CancelUrl"] ?? $"{_config["App:FrontendBaseUrl"]}/payments/cancelled";
+        // Web (Angular) and mobile (Ionic) have different result pages. The mobile URLs are optional:
+        // when they are not configured the buyer simply lands on the web URLs as before.
+        var mobile = string.Equals(client, "mobile", StringComparison.OrdinalIgnoreCase);
+        var returnUrl = (mobile ? _config["PayFast:ReturnUrlMobile"] : null)
+            ?? _config["PayFast:ReturnUrl"] ?? $"{_config["App:FrontendBaseUrl"]}/payments/success";
+        var cancelUrl = (mobile ? _config["PayFast:CancelUrlMobile"] : null)
+            ?? _config["PayFast:CancelUrl"] ?? $"{_config["App:FrontendBaseUrl"]}/payments/cancelled";
+        // The result pages use ?invoiceId= to offer a "View invoice" button.
+        returnUrl = WithInvoiceId(returnUrl, invoice.InvoiceID);
+        cancelUrl = WithInvoiceId(cancelUrl, invoice.InvoiceID);
         var notifyUrl = _config["PayFast:NotifyUrl"] ?? throw new InvalidOperationException(
             "PayFast:NotifyUrl must be configured — PayFast needs a publicly reachable URL to POST ITNs to.");
 
@@ -80,7 +88,7 @@ public class PaymentGatewayService : IPaymentGatewayService
             ["m_payment_id"] = invoice.InvoiceNumber,
             ["amount"] = invoice.TotalAmount.ToString("F2", System.Globalization.CultureInfo.InvariantCulture),
             ["item_name"] = $"EquaMeridian Invoice {invoice.InvoiceNumber}",
-            ["item_description"] = $"Booking-linked invoice #{invoice.InvoiceID} - {invoice.Currency} {invoice.TotalAmount.ToString("F2", System.Globalization.CultureInfo.InvariantCulture)}",
+            ["item_description"] = $"Booking-linked invoice #{invoice.InvoiceID} — {invoice.Currency} {invoice.TotalAmount.ToString("F2", System.Globalization.CultureInfo.InvariantCulture)}",
             ["custom_int1"] = invoice.InvoiceID.ToString()
         };
 
@@ -88,6 +96,11 @@ public class PaymentGatewayService : IPaymentGatewayService
 
         return new PaymentInitiationResult { ProcessUrl = ProcessUrl, Fields = fields };
     }
+
+    private static string WithInvoiceId(string url, int invoiceId) =>
+        url.Contains("invoiceId=", StringComparison.OrdinalIgnoreCase)
+            ? url
+            : url + (url.Contains('?') ? "&" : "?") + "invoiceId=" + invoiceId;
 
     public bool VerifyItnSignature(string rawBody, string? receivedSignature)
     {
@@ -117,22 +130,14 @@ public class PaymentGatewayService : IPaymentGatewayService
     public async Task<bool> IsTrustedPayFastSourceAsync(string? remoteIp)
     {
         if (string.IsNullOrWhiteSpace(remoteIp)) return false;
-
-        // RemoteIpAddress can be a single IP, or occasionally a forwarded chain fragment.
-        var candidates = remoteIp
-            .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-            .Select(s => IPAddress.TryParse(s, out var ip) ? ip : null)
-            .Where(ip => ip is not null)
-            .Cast<IPAddress>()
-            .ToList();
-        if (candidates.Count == 0) return false;
+        if (!IPAddress.TryParse(remoteIp, out var callerIp)) return false;
 
         foreach (var host in TrustedNotificationHosts)
         {
             try
             {
                 var addresses = await Dns.GetHostAddressesAsync(host);
-                if (candidates.Any(c => addresses.Any(a => a.Equals(c))))
+                if (addresses.Any(a => a.Equals(callerIp)))
                     return true;
             }
             catch

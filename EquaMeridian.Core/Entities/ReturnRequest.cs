@@ -9,6 +9,12 @@ public class ReturnRequest
     public DateTime PreferredPickupDate { get; set; }
     public string TimeWindow { get; set; } = string.Empty;
     public string PickupLocation { get; set; } = string.Empty;
+
+    public string? AddressStreet { get; set; }
+    public string? AddressSuburb { get; set; }
+    public string? AddressCity { get; set; }
+    public string? AddressProvince { get; set; }
+    public string? AddressPostalCode { get; set; }
     public string? Notes { get; set; }
     public bool EarlyReturnFeeApplies { get; set; }
     public DateTime RequestedAt { get; set; } = AppTime.Now;

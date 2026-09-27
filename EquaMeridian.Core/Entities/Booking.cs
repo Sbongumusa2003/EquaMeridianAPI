@@ -10,6 +10,17 @@ public class Booking
     public DateTime RentalStartDate { get; set; }
     public DateTime RentalEndDate { get; set; }
     public string DeliveryAddress { get; set; } = string.Empty;
+
+    public string? AddressStreet { get; set; }
+    public string? AddressSuburb { get; set; }
+    public string? AddressCity { get; set; }
+    public string? AddressProvince { get; set; }
+    public string? AddressPostalCode { get; set; }
+    /// <summary>
+    /// First-class fulfillment method: "Supplier Delivery" or "Contractor Pickup".
+    /// Stored at booking creation so we never re-infer from free-text address.
+    /// </summary>
+    public string FulfillmentMethod { get; set; } = DeliveryMethods.SupplierDelivery;
     public string Status { get; set; } = "AwaitingSignature";
     public DateTime CreatedDate { get; set; } = AppTime.Now;
     public string? ConditionOnReturn { get; set; }

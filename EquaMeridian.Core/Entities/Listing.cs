@@ -11,6 +11,12 @@
     public string? OperatingWeight { get; set; }
     public string? EnginePower { get; set; }
     public string? Location { get; set; }
+
+    public string? AddressStreet { get; set; }
+    public string? AddressSuburb { get; set; }
+    public string? AddressCity { get; set; }
+    public string? AddressProvince { get; set; }
+    public string? AddressPostalCode { get; set; }
     public decimal DailyRateZAR { get; set; }
     public decimal? WeeklyRateZAR { get; set; }
     // The platform commission rate in effect when this listing was created. Locked in at creation

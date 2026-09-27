@@ -22,6 +22,13 @@ namespace EquaMeridian.DTOs.Auth
         public string FullName { get; set; } = string.Empty;
         public DateTime Expiry { get; set; }
         public List<string> Permissions { get; set; } = new();
+
+        /// <summary>
+        /// True when a Disabled Supplier/Contractor is granted a short-lived session
+        /// solely to upload verification documents and request reactivation.
+        /// </summary>
+        public bool RestrictedAccess { get; set; } = false;
+        public string AccountStatus { get; set; } = "Active";
     }
 
     public class RegisterRequest

@@ -76,6 +76,11 @@ public class CartRepository : ICartRepository
                 RentalEndDate = item.RentalEndDate,
                 RentalDurationDays = days,
                 DeliveryAddress = item.DeliveryAddress,
+                AddressStreet = item.AddressStreet,
+                AddressSuburb = item.AddressSuburb,
+                AddressCity = item.AddressCity,
+                AddressProvince = item.AddressProvince,
+                AddressPostalCode = item.AddressPostalCode,
                 FulfillmentMethod = isPickup ? "Contractor Pickup" : "Supplier Delivery",
                 DailyRateZAR = item.Listing.DailyRateZAR,
                 RentalSubtotal = pricing.RentalSubtotal,
@@ -193,13 +198,14 @@ public class CartRepository : ICartRepository
                 return (false, $"Only {listing.UnitsAvailable} unit(s) of this item are currently available.");
             existing.Quantity += dto.Quantity;
             existing.DeliveryAddress = address;
+            ApplyStructuredAddress(existing, dto.Address, dto.AddressStreet, dto.AddressSuburb, dto.AddressCity, dto.AddressProvince, dto.AddressPostalCode, address);
             existing.ReservedUntil = AppTime.Now.Add(ttl);
             listing.UnitsAvailable -= dto.Quantity;
             listing.UnitsReserved += dto.Quantity;
         }
         else
         {
-            _db.CartItems.Add(new CartItem
+            var cartItem = new CartItem
             {
                 ContractorID = contractorId,
                 ListingID = dto.ListingID,
@@ -209,7 +215,9 @@ public class CartRepository : ICartRepository
                 DeliveryAddress = address,
                 AddedDate = AppTime.Now,
                 ReservedUntil = AppTime.Now.Add(ttl)
-            });
+            };
+            ApplyStructuredAddress(cartItem, dto.Address, dto.AddressStreet, dto.AddressSuburb, dto.AddressCity, dto.AddressProvince, dto.AddressPostalCode, address);
+            _db.CartItems.Add(cartItem);
             listing.UnitsAvailable -= dto.Quantity;
             listing.UnitsReserved += dto.Quantity;
         }
@@ -271,6 +279,7 @@ public class CartRepository : ICartRepository
         item.RentalEndDate = dto.EndDate.Date;
         item.Quantity = newQty;
         item.DeliveryAddress = address;
+        ApplyStructuredAddress(item, dto.Address, dto.AddressStreet, dto.AddressSuburb, dto.AddressCity, dto.AddressProvince, dto.AddressPostalCode, address);
 
         await _db.SaveChangesAsync();
         return (true, null);
@@ -359,6 +368,11 @@ public class CartRepository : ICartRepository
                     RentalEndDate = item.RentalEndDate,
                     Quantity = item.Quantity,
                     DeliveryAddress = item.DeliveryAddress,
+                AddressStreet = item.AddressStreet,
+                AddressSuburb = item.AddressSuburb,
+                AddressCity = item.AddressCity,
+                AddressProvince = item.AddressProvince,
+                AddressPostalCode = item.AddressPostalCode,
                     PreferredContact = "Email",
                     DailyRateZAR = item.Listing.DailyRateZAR,
                     DeliveryDistanceKm = distanceKm,
@@ -416,6 +430,11 @@ public class CartRepository : ICartRepository
                     RentalStartDate = item.RentalStartDate,
                     RentalEndDate = item.RentalEndDate,
                     DeliveryAddress = item.DeliveryAddress,
+                AddressStreet = item.AddressStreet,
+                AddressSuburb = item.AddressSuburb,
+                AddressCity = item.AddressCity,
+                AddressProvince = item.AddressProvince,
+                AddressPostalCode = item.AddressPostalCode,
                     CreatedDate = now,
                     Quantity = Math.Max(1, item.Quantity)
                 };
@@ -476,4 +495,35 @@ public class CartRepository : ICartRepository
         return loc.Length > 0 && a.Equals(loc, StringComparison.OrdinalIgnoreCase);
     }
 
+
+    private static void ApplyStructuredAddress(
+        CartItem item,
+        SaAddressDto? nested,
+        string? street, string? suburb, string? city, string? province, string? postal,
+        string formattedFallback)
+    {
+        if (nested != null && !nested.ToModel().IsEmpty)
+        {
+            var m = nested.ToModel();
+            item.AddressStreet = m.Street;
+            item.AddressSuburb = m.Suburb;
+            item.AddressCity = m.City;
+            item.AddressProvince = m.Province;
+            item.AddressPostalCode = m.PostalCode;
+            item.DeliveryAddress = m.ToFormatted();
+            return;
+        }
+        var structured = SaAddress.FromParts(street, suburb, city, province, postal);
+        if (structured.IsEmpty && !string.IsNullOrWhiteSpace(formattedFallback))
+            structured = SaAddress.Parse(formattedFallback);
+        if (!structured.IsEmpty)
+        {
+            item.AddressStreet = structured.Street;
+            item.AddressSuburb = structured.Suburb;
+            item.AddressCity = structured.City;
+            item.AddressProvince = structured.Province;
+            item.AddressPostalCode = structured.PostalCode;
+            item.DeliveryAddress = structured.ToFormatted();
+        }
+    }
 }
