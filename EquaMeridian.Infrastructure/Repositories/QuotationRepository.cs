@@ -153,9 +153,7 @@ public class QuotationRepository : IQuotationRepository
             };
 
         var rentalDays = Math.Max(1, (dto.EndDate.Date - dto.StartDate.Date).Days);
-        var structured = ResolveAddress(dto.Address, dto.AddressStreet, dto.AddressSuburb, dto.AddressCity, dto.AddressProvince, dto.AddressPostalCode, dto.DeliveryAddress);
-        var deliveryAddress = structured.IsEmpty ? (dto.DeliveryAddress ?? string.Empty) : structured.ToFormatted();
-        var distanceKm = await _distanceService.CalculateDistanceKmAsync(listing.Location, deliveryAddress);
+        var distanceKm = await _distanceService.CalculateDistanceKmAsync(listing.Location, dto.DeliveryAddress);
         var pricing = await _pricingEngine.CalculateAsync(
             listing.DailyRateZAR, rentalDays, dto.Quantity, distanceKm, listing.CategoryID);
 
@@ -167,12 +165,7 @@ public class QuotationRepository : IQuotationRepository
             RentalStartDate = dto.StartDate,
             RentalEndDate = dto.EndDate,
             Quantity = dto.Quantity,
-            DeliveryAddress = deliveryAddress,
-            AddressStreet = structured.Street,
-            AddressSuburb = structured.Suburb,
-            AddressCity = structured.City,
-            AddressProvince = structured.Province,
-            AddressPostalCode = structured.PostalCode,
+            DeliveryAddress = dto.DeliveryAddress,
             SpecialRequirements = dto.SpecialRequirements,
             PreferredContact = dto.PreferredContact,
             DeliveryDistanceKm = distanceKm,
@@ -302,11 +295,6 @@ public class QuotationRepository : IQuotationRepository
             RentalEndDate = q.RentalEndDate,
             Quantity = q.Quantity,
             DeliveryAddress = q.DeliveryAddress,
-            AddressStreet = q.AddressStreet,
-            AddressSuburb = q.AddressSuburb,
-            AddressCity = q.AddressCity,
-            AddressProvince = q.AddressProvince,
-            AddressPostalCode = q.AddressPostalCode,
             SpecialRequirements = q.SpecialRequirements,
             PreferredContact = q.PreferredContact,
             EstimatedTotal = q.EstimatedTotal,
@@ -454,11 +442,6 @@ public class QuotationRepository : IQuotationRepository
             RentalStartDate = q.RentalStartDate,
             RentalEndDate = q.RentalEndDate,
             DeliveryAddress = q.DeliveryAddress,
-            AddressStreet = q.AddressStreet,
-            AddressSuburb = q.AddressSuburb,
-            AddressCity = q.AddressCity,
-            AddressProvince = q.AddressProvince,
-            AddressPostalCode = q.AddressPostalCode,
             CreatedDate = AppTime.Now,
             Quantity = Math.Max(1, q.Quantity)
         };

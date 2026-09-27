@@ -10,7 +10,7 @@ public interface IBookingRepository
     Task<BookingsPageDto> GetAllForAdminAsync(
         int page, int pageSize, string? search = null, string? status = null);
     Task<DeliveryDetailDto?> GetDeliveryDetailAsync(int bookingId, int userId, string role);
-    Task<bool> UpdateDeliveryAddressAsync(int bookingId, int contractorId, UpdateDeliveryAddressDto dto);
+    Task<bool> UpdateDeliveryAddressAsync(int bookingId, int contractorId, string newAddress);
     Task<ConfirmDeliveryResult> ConfirmDeliveryAsync(int bookingId, int contractorId, ConfirmDeliveryDto dto);
     Task<ReturnRequestResult> RequestReturnAsync(int bookingId, int contractorId, RequestReturnDto dto);
     Task<MarkReadyResult> MarkReadyForPickupAsync(int bookingId, int supplierId);

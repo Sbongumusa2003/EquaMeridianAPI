@@ -37,15 +37,7 @@ public class AuthService : IAuthService
             await _db.SaveChangesAsync();
         }
 
-        // Disabled Supplier/Contractor may obtain a restricted session so they can
-        // upload verification documents and request reactivation. All other non-Active
-        // statuses (Pending, Locked, Inactive, Disabled for admin/other roles) remain blocked.
-        var isMarketplaceRole = user.Role.Equals("Supplier", StringComparison.OrdinalIgnoreCase)
-                             || user.Role.Equals("Contractor", StringComparison.OrdinalIgnoreCase);
-        var isRestrictedLogin = user.AccountStatus.Equals("Disabled", StringComparison.OrdinalIgnoreCase)
-                             && isMarketplaceRole;
-
-        if (user.AccountStatus != "Active" && !isRestrictedLogin)
+        if (user.AccountStatus != "Active")
             throw new InvalidOperationException(user.AccountStatus);
 
         if (!BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash))
@@ -74,8 +66,7 @@ public class AuthService : IAuthService
                 Reference = reference,
                 UserID = user.UserID,
                 CodeHash = HashToken(code),
-                ExpiryTimestamp = expiresAt,
-                Purpose = "Login"
+                ExpiryTimestamp = expiresAt
             });
             await _db.SaveChangesAsync();
 
@@ -84,10 +75,7 @@ public class AuthService : IAuthService
                 $"Your EquaMeridian verification code is {code}. It expires in 10 minutes.");
 
             await _audit.LogAsync(user.UserID, "LOGIN_OTP_ISSUED",
-                isRestrictedLogin
-                    ? "Password verified; OTP issued for restricted (Disabled) login"
-                    : "Password verified; OTP issued for two-factor login",
-                null, null, null, ip);
+                "Password verified; OTP issued for two-factor login", null, null, null, ip);
 
             return new LoginOutcome { RequiresOtp = true, OtpReference = reference, OtpExpiresAt = expiresAt };
         }
@@ -96,20 +84,12 @@ public class AuthService : IAuthService
         user.LastLoginDate = AppTime.Now;
         await _db.SaveChangesAsync();
 
-        // Restricted sessions are always short-lived (ignore KeepMeSignedIn).
-        var expiry = isRestrictedLogin
-            ? AppTime.Now.AddMinutes(_config.GetValue<int>("Jwt:ExpiryMinutes", 60))
-            : dto.KeepMeSignedIn
-                ? AppTime.Now.AddDays(_config.GetValue<int>("Jwt:LongExpiryDays"))
-                : AppTime.Now.AddMinutes(_config.GetValue<int>("Jwt:ExpiryMinutes"));
+        var expiry = dto.KeepMeSignedIn
+            ? AppTime.Now.AddDays(_config.GetValue<int>("Jwt:LongExpiryDays"))
+            : AppTime.Now.AddMinutes(_config.GetValue<int>("Jwt:ExpiryMinutes"));
 
-        var token = GenerateJwt(user, expiry, isRestrictedLogin);
-        await _audit.LogAsync(user.UserID,
-            isRestrictedLogin ? "RESTRICTED_LOGIN" : "LOGIN",
-            isRestrictedLogin
-                ? "Restricted login for Disabled account (document upload only)"
-                : "Successful login",
-            null, null, null, ip);
+        var token = GenerateJwt(user, expiry);
+        await _audit.LogAsync(user.UserID, "LOGIN", "Successful login", null, null, null, ip);
 
         return new LoginOutcome
         {
@@ -121,9 +101,7 @@ public class AuthService : IAuthService
                 UserID = user.UserID,
                 FullName = user.FullName,
                 Expiry = expiry,
-                Permissions = isRestrictedLogin ? new List<string>() : await ResolvePermissionsAsync(user.Role),
-                RestrictedAccess = isRestrictedLogin,
-                AccountStatus = user.AccountStatus
+                Permissions = await ResolvePermissionsAsync(user.Role)
             }
         };
     }
@@ -152,33 +130,16 @@ public class AuthService : IAuthService
 
         record.IsUsed = true;
         var user = record.User;
-
-        // Re-evaluate restricted access at OTP verification time (status may have changed).
-        var isMarketplaceRole = user.Role.Equals("Supplier", StringComparison.OrdinalIgnoreCase)
-                             || user.Role.Equals("Contractor", StringComparison.OrdinalIgnoreCase);
-        var isRestrictedLogin = user.AccountStatus.Equals("Disabled", StringComparison.OrdinalIgnoreCase)
-                             && isMarketplaceRole;
-
-        if (user.AccountStatus != "Active" && !isRestrictedLogin)
-            throw new InvalidOperationException(user.AccountStatus);
-
         user.FailedAttemptCount = 0;
         user.LastLoginDate = AppTime.Now;
         await _db.SaveChangesAsync();
 
-        var expiry = isRestrictedLogin
-            ? AppTime.Now.AddMinutes(_config.GetValue<int>("Jwt:ExpiryMinutes", 60))
-            : dto.KeepMeSignedIn
-                ? AppTime.Now.AddDays(_config.GetValue<int>("Jwt:LongExpiryDays"))
-                : AppTime.Now.AddMinutes(_config.GetValue<int>("Jwt:ExpiryMinutes"));
-        var token = GenerateJwt(user, expiry, isRestrictedLogin);
+        var expiry = dto.KeepMeSignedIn
+            ? AppTime.Now.AddDays(_config.GetValue<int>("Jwt:LongExpiryDays"))
+            : AppTime.Now.AddMinutes(_config.GetValue<int>("Jwt:ExpiryMinutes"));
+        var token = GenerateJwt(user, expiry);
 
-        await _audit.LogAsync(user.UserID,
-            isRestrictedLogin ? "RESTRICTED_LOGIN" : "LOGIN",
-            isRestrictedLogin
-                ? "Restricted login for Disabled account (OTP verified, document upload only)"
-                : "Successful login (OTP verified)",
-            null, null, null, ip);
+        await _audit.LogAsync(user.UserID, "LOGIN", "Successful login (OTP verified)", null, null, null, ip);
 
         return new LoginResponse
         {
@@ -187,9 +148,7 @@ public class AuthService : IAuthService
             UserID = user.UserID,
             FullName = user.FullName,
             Expiry = expiry,
-            Permissions = isRestrictedLogin ? new List<string>() : await ResolvePermissionsAsync(user.Role),
-            RestrictedAccess = isRestrictedLogin,
-            AccountStatus = user.AccountStatus
+            Permissions = await ResolvePermissionsAsync(user.Role)
         };
     }
 
@@ -568,17 +527,15 @@ public class AuthService : IAuthService
             .ToListAsync();
     }
 
-    private string GenerateJwt(User user, DateTime expiry, bool restrictedAccess = false)
+    private string GenerateJwt(User user, DateTime expiry)
     {
-        var claims = new List<Claim>
+        var claims = new[]
         {
             new Claim(ClaimTypes.NameIdentifier, user.UserID.ToString()),
             new Claim(ClaimTypes.Email,          user.Email),
             new Claim(ClaimTypes.Role,           user.Role),
             new Claim(ClaimTypes.Name,           user.FullName)
         };
-        if (restrictedAccess)
-            claims.Add(new Claim("restricted_access", "true"));
         var key = new SymmetricSecurityKey(
                       Encoding.UTF8.GetBytes(_config["Jwt:Key"]!));
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
