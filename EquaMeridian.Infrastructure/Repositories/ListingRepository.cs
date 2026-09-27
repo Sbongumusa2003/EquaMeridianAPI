@@ -155,12 +155,7 @@ public class ListingRepository : IListingRepository
             Year = dto.Year,
             OperatingWeight = dto.OperatingWeight,
             EnginePower = dto.EnginePower,
-            Location = ResolveListingLocation(dto.Location, dto.Address, dto.AddressStreet, dto.AddressSuburb, dto.AddressCity, dto.AddressProvince, dto.AddressPostalCode),
-            AddressStreet = CoalesceAddress(dto.Address?.Street, dto.AddressStreet),
-            AddressSuburb = CoalesceAddress(dto.Address?.Suburb, dto.AddressSuburb),
-            AddressCity = CoalesceAddress(dto.Address?.City, dto.AddressCity),
-            AddressProvince = CoalesceAddress(dto.Address?.Province, dto.AddressProvince),
-            AddressPostalCode = CoalesceAddress(dto.Address?.PostalCode, dto.AddressPostalCode),
+            Location = dto.Location,
             DailyRateZAR = dto.DailyRateZAR,
             WeeklyRateZAR = dto.WeeklyRateZAR,
             CommissionRateSnapshot = currentCommissionRate,
@@ -200,25 +195,7 @@ public class ListingRepository : IListingRepository
         l.Year = dto.Year;
         l.OperatingWeight = dto.OperatingWeight;
         l.EnginePower = dto.EnginePower;
-        // Prefer structured address when provided; keep Location as formatted display string.
-        var street = CoalesceAddress(dto.Address?.Street, dto.AddressStreet);
-        var suburb = CoalesceAddress(dto.Address?.Suburb, dto.AddressSuburb);
-        var city = CoalesceAddress(dto.Address?.City, dto.AddressCity);
-        var province = CoalesceAddress(dto.Address?.Province, dto.AddressProvince);
-        var postal = CoalesceAddress(dto.Address?.PostalCode, dto.AddressPostalCode);
-        if (!string.IsNullOrWhiteSpace(city) || !string.IsNullOrWhiteSpace(street))
-        {
-            l.AddressStreet = street;
-            l.AddressSuburb = suburb;
-            l.AddressCity = city;
-            l.AddressProvince = province;
-            l.AddressPostalCode = postal;
-            l.Location = SaAddress.Format(street, suburb, city, province, postal);
-        }
-        else
-        {
-            l.Location = dto.Location;
-        }
+        l.Location = dto.Location;
         l.DailyRateZAR = dto.DailyRateZAR;
         l.WeeklyRateZAR = dto.WeeklyRateZAR;
         l.DryHireAvailable = dto.DryHireAvailable;
@@ -408,11 +385,6 @@ public class ListingRepository : IListingRepository
             OperatingWeight = l.OperatingWeight,
             EnginePower = l.EnginePower,
             Location = l.Location,
-            AddressStreet = l.AddressStreet,
-            AddressSuburb = l.AddressSuburb,
-            AddressCity = l.AddressCity,
-            AddressProvince = l.AddressProvince,
-            AddressPostalCode = l.AddressPostalCode,
             DailyRateZAR = l.DailyRateZAR,
             WeeklyRateZAR = l.WeeklyRateZAR,
             DryHireAvailable = l.DryHireAvailable,
@@ -508,24 +480,5 @@ public class ListingRepository : IListingRepository
             Verified = supplier.AccountStatus == "Active",
             Listings = listings.Select(l => MapToDto(l, imageMap)).ToList()
         };
-    }
-
-    private static string? CoalesceAddress(string? nested, string? flat)
-        => !string.IsNullOrWhiteSpace(nested) ? nested.Trim() : (string.IsNullOrWhiteSpace(flat) ? null : flat.Trim());
-
-    private static string? ResolveListingLocation(
-        string? location, SaAddressDto? address,
-        string? street, string? suburb, string? city, string? province, string? postal)
-    {
-        if (address != null && !address.ToModel().IsEmpty)
-            return address.ToModel().ToFormatted();
-        var formatted = SaAddress.Format(
-            CoalesceAddress(address?.Street, street),
-            CoalesceAddress(address?.Suburb, suburb),
-            CoalesceAddress(address?.City, city),
-            CoalesceAddress(address?.Province, province),
-            CoalesceAddress(address?.PostalCode, postal));
-        if (!string.IsNullOrWhiteSpace(formatted)) return formatted;
-        return location;
     }
 }
