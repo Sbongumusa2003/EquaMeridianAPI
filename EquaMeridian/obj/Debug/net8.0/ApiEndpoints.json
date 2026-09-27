@@ -191,6 +191,38 @@
   },
   {
     "ContainingType": "AdminBackupController",
+    "Method": "Download",
+    "RelativePath": "api/admin/backup/{fileName}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "fileName",
+        "Type": "System.String",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "AdminBackupController",
+    "Method": "Delete",
+    "RelativePath": "api/admin/backup/{fileName}",
+    "HttpMethod": "DELETE",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "fileName",
+        "Type": "System.String",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "AdminBackupController",
     "Method": "Restore",
     "RelativePath": "api/admin/backup/restore",
     "HttpMethod": "POST",
@@ -740,6 +772,22 @@
     "ContainingType": "AdminDocumentsController",
     "Method": "GetById",
     "RelativePath": "api/admin/documents/{docId}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "docId",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "AdminDocumentsController",
+    "Method": "GetFile",
+    "RelativePath": "api/admin/documents/{docId}/file",
     "HttpMethod": "GET",
     "IsController": true,
     "Order": 0,
@@ -2062,13 +2110,13 @@
         "IsRequired": false
       },
       {
-        "Name": "Documents",
-        "Type": "System.Collections.Generic.List\u00601[[Microsoft.AspNetCore.Http.IFormFile, Microsoft.AspNetCore.Http.Features, Version=8.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60]]",
+        "Name": "DocTypeIds",
+        "Type": "System.Collections.Generic.List\u00601[[System.Int32, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
         "IsRequired": false
       },
       {
-        "Name": "DocTypeIds",
-        "Type": "System.Collections.Generic.List\u00601[[System.Int32, System.Private.CoreLib, Version=8.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e]]",
+        "Name": "documents",
+        "Type": "System.Collections.Generic.List\u00601[[Microsoft.AspNetCore.Http.IFormFile, Microsoft.AspNetCore.Http.Features, Version=8.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60]]",
         "IsRequired": false
       }
     ],
@@ -2100,7 +2148,7 @@
     "Parameters": [
       {
         "Name": "dto",
-        "Type": "EquaMeridian.DTOs.Auth.VerifyResetOtpRequest",
+        "Type": "EquaMeridian.DTOs.Auth.ResetPasswordRequest",
         "IsRequired": true
       }
     ],
@@ -3502,6 +3550,22 @@
     "ReturnTypes": []
   },
   {
+    "ContainingType": "MediaController",
+    "Method": "GetListingImage",
+    "RelativePath": "api/media/listing-images/{imageId}",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "imageId",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
     "ContainingType": "MessagesController",
     "Method": "Send",
     "RelativePath": "api/messages",
@@ -4481,6 +4545,22 @@
   },
   {
     "ContainingType": "DocumentController",
+    "Method": "GetFile",
+    "RelativePath": "api/users/me/documents/{docId}/file",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "docId",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "DocumentController",
     "Method": "GetTypes",
     "RelativePath": "api/users/me/documents/types",
     "HttpMethod": "GET",
@@ -4510,5 +4590,21 @@
       }
     ],
     "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Program\u002B\u003C\u003Ec",
+    "Method": "\u003C\u003CMain\u003E$\u003Eb__0_9",
+    "RelativePath": "health",
+    "HttpMethod": "GET",
+    "IsController": false,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": [
+      {
+        "Type": "System.Void",
+        "MediaTypes": [],
+        "StatusCode": 200
+      }
+    ]
   }
 ]

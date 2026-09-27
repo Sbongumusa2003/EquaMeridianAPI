@@ -14,17 +14,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateAnnouncementRequest"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Notifications.CreateAnnouncementRequest"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateAnnouncementRequest"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Notifications.CreateAnnouncementRequest"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateAnnouncementRequest"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Notifications.CreateAnnouncementRequest"
               }
             }
           }
@@ -279,6 +279,48 @@
         }
       }
     },
+    "/api/admin/backup/{fileName}": {
+      "get": {
+        "tags": [
+          "AdminBackup"
+        ],
+        "parameters": [
+          {
+            "name": "fileName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "AdminBackup"
+        ],
+        "parameters": [
+          {
+            "name": "fileName",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/api/admin/backup/restore": {
       "post": {
         "tags": [
@@ -288,17 +330,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/RestoreBackupRequest"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.DatabaseBackup.RestoreBackupRequest"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/RestoreBackupRequest"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.DatabaseBackup.RestoreBackupRequest"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/RestoreBackupRequest"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.DatabaseBackup.RestoreBackupRequest"
               }
             }
           }
@@ -636,17 +678,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpsertDiscountTierDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Fees.UpsertDiscountTierDto"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpsertDiscountTierDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Fees.UpsertDiscountTierDto"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/UpsertDiscountTierDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Fees.UpsertDiscountTierDto"
               }
             }
           }
@@ -678,17 +720,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpsertDiscountTierDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Fees.UpsertDiscountTierDto"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpsertDiscountTierDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Fees.UpsertDiscountTierDto"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/UpsertDiscountTierDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Fees.UpsertDiscountTierDto"
               }
             }
           }
@@ -791,6 +833,29 @@
         }
       }
     },
+    "/api/admin/documents/{docId}/file": {
+      "get": {
+        "tags": [
+          "AdminDocuments"
+        ],
+        "parameters": [
+          {
+            "name": "docId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/api/admin/documents/checklist/{userId}": {
       "get": {
         "tags": [
@@ -834,17 +899,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ReviewDocumentDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Documents.ReviewDocumentDto"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/ReviewDocumentDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Documents.ReviewDocumentDto"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/ReviewDocumentDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Documents.ReviewDocumentDto"
               }
             }
           }
@@ -953,17 +1018,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateListingStatusDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Listings.UpdateListingStatusDto"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateListingStatusDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Listings.UpdateListingStatusDto"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateListingStatusDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Listings.UpdateListingStatusDto"
               }
             }
           }
@@ -1018,17 +1083,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/RejectListingDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Listings.RejectListingDto"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/RejectListingDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Listings.RejectListingDto"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/RejectListingDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Listings.RejectListingDto"
               }
             }
           }
@@ -1060,17 +1125,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/RequestListingChangesDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Listings.RequestListingChangesDto"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/RequestListingChangesDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Listings.RequestListingChangesDto"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/RequestListingChangesDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Listings.RequestListingChangesDto"
               }
             }
           }
@@ -1171,17 +1236,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ProcessPayoutDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Payouts.ProcessPayoutDto"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/ProcessPayoutDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Payouts.ProcessPayoutDto"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/ProcessPayoutDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Payouts.ProcessPayoutDto"
               }
             }
           }
@@ -1939,17 +2004,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/AdminDeleteReviewDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Reviews.AdminDeleteReviewDto"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/AdminDeleteReviewDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Reviews.AdminDeleteReviewDto"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/AdminDeleteReviewDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Reviews.AdminDeleteReviewDto"
               }
             }
           }
@@ -1980,17 +2045,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateRoleRequest"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Roles.CreateRoleRequest"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateRoleRequest"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Roles.CreateRoleRequest"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateRoleRequest"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Roles.CreateRoleRequest"
               }
             }
           }
@@ -2078,17 +2143,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateRolePermissionsRequest"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Roles.UpdateRolePermissionsRequest"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateRolePermissionsRequest"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Roles.UpdateRolePermissionsRequest"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateRolePermissionsRequest"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Roles.UpdateRolePermissionsRequest"
               }
             }
           }
@@ -2119,17 +2184,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateTimerConfigurationRequest"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Timers.UpdateTimerConfigurationRequest"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateTimerConfigurationRequest"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Timers.UpdateTimerConfigurationRequest"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateTimerConfigurationRequest"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Timers.UpdateTimerConfigurationRequest"
               }
             }
           }
@@ -2174,17 +2239,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/LoginRequest"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Auth.LoginRequest"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/LoginRequest"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Auth.LoginRequest"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/LoginRequest"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Auth.LoginRequest"
               }
             }
           }
@@ -2205,17 +2270,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/VerifyOtpRequest"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Auth.VerifyOtpRequest"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/VerifyOtpRequest"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Auth.VerifyOtpRequest"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/VerifyOtpRequest"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Auth.VerifyOtpRequest"
               }
             }
           }
@@ -2236,17 +2301,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ResendOtpRequest"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Auth.ResendOtpRequest"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/ResendOtpRequest"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Auth.ResendOtpRequest"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/ResendOtpRequest"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Auth.ResendOtpRequest"
               }
             }
           }
@@ -2267,17 +2332,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ToggleTwoFactorRequest"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Auth.ToggleTwoFactorRequest"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/ToggleTwoFactorRequest"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Auth.ToggleTwoFactorRequest"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/ToggleTwoFactorRequest"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Auth.ToggleTwoFactorRequest"
               }
             }
           }
@@ -2298,17 +2363,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ToggleTwoFactorRequest"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Auth.ToggleTwoFactorRequest"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/ToggleTwoFactorRequest"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Auth.ToggleTwoFactorRequest"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/ToggleTwoFactorRequest"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Auth.ToggleTwoFactorRequest"
               }
             }
           }
@@ -2341,17 +2406,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ForgotPasswordRequest"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Auth.ForgotPasswordRequest"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/ForgotPasswordRequest"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Auth.ForgotPasswordRequest"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/ForgotPasswordRequest"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Auth.ForgotPasswordRequest"
               }
             }
           }
@@ -2372,17 +2437,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/VerifyResetOtpRequest"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Auth.ResetPasswordRequest"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/VerifyResetOtpRequest"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Auth.ResetPasswordRequest"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/VerifyResetOtpRequest"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Auth.ResetPasswordRequest"
               }
             }
           }
@@ -2403,17 +2468,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/RegisterRequest"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Auth.RegisterRequest"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/RegisterRequest"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Auth.RegisterRequest"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/RegisterRequest"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Auth.RegisterRequest"
               }
             }
           }
@@ -2437,7 +2502,6 @@
                 "required": [
                   "CompanyName",
                   "DocTypeIds",
-                  "Documents",
                   "Email",
                   "FullName",
                   "Password"
@@ -2469,18 +2533,18 @@
                     "pattern": "^(\\+27[0-9]{9}|0[0-9]{9})$",
                     "type": "string"
                   },
-                  "Documents": {
-                    "type": "array",
-                    "items": {
-                      "type": "string",
-                      "format": "binary"
-                    }
-                  },
                   "DocTypeIds": {
                     "type": "array",
                     "items": {
                       "type": "integer",
                       "format": "int32"
+                    }
+                  },
+                  "documents": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "format": "binary"
                     }
                   }
                 }
@@ -2504,10 +2568,10 @@
                 "PhoneNumber": {
                   "style": "form"
                 },
-                "Documents": {
+                "DocTypeIds": {
                   "style": "form"
                 },
-                "DocTypeIds": {
+                "documents": {
                   "style": "form"
                 }
               }
@@ -2718,17 +2782,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateDeliveryAddressDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Bookings.UpdateDeliveryAddressDto"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateDeliveryAddressDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Bookings.UpdateDeliveryAddressDto"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateDeliveryAddressDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Bookings.UpdateDeliveryAddressDto"
               }
             }
           }
@@ -2760,17 +2824,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ConfirmDeliveryDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Bookings.ConfirmDeliveryDto"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/ConfirmDeliveryDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Bookings.ConfirmDeliveryDto"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/ConfirmDeliveryDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Bookings.ConfirmDeliveryDto"
               }
             }
           }
@@ -2871,17 +2935,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/RequestReturnDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Bookings.RequestReturnDto"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/RequestReturnDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Bookings.RequestReturnDto"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/RequestReturnDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Bookings.RequestReturnDto"
               }
             }
           }
@@ -2988,17 +3052,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CancelBookingDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Bookings.CancelBookingDto"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/CancelBookingDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Bookings.CancelBookingDto"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/CancelBookingDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Bookings.CancelBookingDto"
               }
             }
           }
@@ -3040,17 +3104,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/AddCartItemDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Cart.AddCartItemDto"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/AddCartItemDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Cart.AddCartItemDto"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/AddCartItemDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Cart.AddCartItemDto"
               }
             }
           }
@@ -3082,17 +3146,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateCartItemDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Cart.UpdateCartItemDto"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateCartItemDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Cart.UpdateCartItemDto"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateCartItemDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Cart.UpdateCartItemDto"
               }
             }
           }
@@ -3134,17 +3198,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CheckoutRequestDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Cart.CheckoutRequestDto"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/CheckoutRequestDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Cart.CheckoutRequestDto"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/CheckoutRequestDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Cart.CheckoutRequestDto"
               }
             }
           }
@@ -3187,17 +3251,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpsertCategoryDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Categories.UpsertCategoryDto"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpsertCategoryDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Categories.UpsertCategoryDto"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/UpsertCategoryDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Categories.UpsertCategoryDto"
               }
             }
           }
@@ -3229,17 +3293,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpsertCategoryDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Categories.UpsertCategoryDto"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpsertCategoryDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Categories.UpsertCategoryDto"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/UpsertCategoryDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Categories.UpsertCategoryDto"
               }
             }
           }
@@ -3281,17 +3345,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ChatbotAskDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Chatbot.ChatbotAskDto"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/ChatbotAskDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Chatbot.ChatbotAskDto"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/ChatbotAskDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Chatbot.ChatbotAskDto"
               }
             }
           }
@@ -3324,17 +3388,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ChatbotFeedbackDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Chatbot.ChatbotFeedbackDto"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/ChatbotFeedbackDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Chatbot.ChatbotFeedbackDto"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/ChatbotFeedbackDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Chatbot.ChatbotFeedbackDto"
               }
             }
           }
@@ -3404,17 +3468,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/RequestInspectionDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Inspections.RequestInspectionDto"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/RequestInspectionDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Inspections.RequestInspectionDto"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/RequestInspectionDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Inspections.RequestInspectionDto"
               }
             }
           }
@@ -3481,17 +3545,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ConfirmOutcomeDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Inspections.ConfirmOutcomeDto"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/ConfirmOutcomeDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Inspections.ConfirmOutcomeDto"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/ConfirmOutcomeDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Inspections.ConfirmOutcomeDto"
               }
             }
           }
@@ -3634,17 +3698,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateQuotationRequestDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Quotations.CreateQuotationRequestDto"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateQuotationRequestDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Quotations.CreateQuotationRequestDto"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateQuotationRequestDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Quotations.CreateQuotationRequestDto"
               }
             }
           }
@@ -3811,17 +3875,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/RejectQuotationDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Quotations.RejectQuotationDto"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/RejectQuotationDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Quotations.RejectQuotationDto"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/RejectQuotationDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Quotations.RejectQuotationDto"
               }
             }
           }
@@ -3852,17 +3916,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateRefundRequestDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Refunds.CreateRefundRequestDto"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateRefundRequestDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Refunds.CreateRefundRequestDto"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateRefundRequestDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Refunds.CreateRefundRequestDto"
               }
             }
           }
@@ -4036,17 +4100,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ResolveDisputeDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Disputes.ResolveDisputeDto"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/ResolveDisputeDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Disputes.ResolveDisputeDto"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/ResolveDisputeDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Disputes.ResolveDisputeDto"
               }
             }
           }
@@ -4128,6 +4192,29 @@
         }
       }
     },
+    "/api/users/me/documents/{docId}/file": {
+      "get": {
+        "tags": [
+          "Document"
+        ],
+        "parameters": [
+          {
+            "name": "docId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/api/users/me/documents/{docId}": {
       "put": {
         "tags": [
@@ -4164,6 +4251,18 @@
             }
           }
         },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/health": {
+      "get": {
+        "tags": [
+          "EquaMeridian"
+        ],
         "responses": {
           "200": {
             "description": "OK"
@@ -4217,17 +4316,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/RequestInspectionDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Inspections.RequestInspectionDto"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/RequestInspectionDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Inspections.RequestInspectionDto"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/RequestInspectionDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Inspections.RequestInspectionDto"
               }
             }
           }
@@ -4317,17 +4416,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ConfirmOutcomeDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Inspections.ConfirmOutcomeDto"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/ConfirmOutcomeDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Inspections.ConfirmOutcomeDto"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/ConfirmOutcomeDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Inspections.ConfirmOutcomeDto"
               }
             }
           }
@@ -4668,17 +4767,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/SignLeaseAgreementDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.LeaseAgreements.SignLeaseAgreementDto"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/SignLeaseAgreementDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.LeaseAgreements.SignLeaseAgreementDto"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/SignLeaseAgreementDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.LeaseAgreements.SignLeaseAgreementDto"
               }
             }
           }
@@ -4711,17 +4810,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpsertNodeDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.LocationTree.UpsertNodeDto"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpsertNodeDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.LocationTree.UpsertNodeDto"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/UpsertNodeDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.LocationTree.UpsertNodeDto"
               }
             }
           }
@@ -4753,17 +4852,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpsertNodeDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.LocationTree.UpsertNodeDto"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpsertNodeDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.LocationTree.UpsertNodeDto"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/UpsertNodeDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.LocationTree.UpsertNodeDto"
               }
             }
           }
@@ -4805,17 +4904,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateCityDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.LocationTree.CreateCityDto"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateCityDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.LocationTree.CreateCityDto"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateCityDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.LocationTree.CreateCityDto"
               }
             }
           }
@@ -4847,17 +4946,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpsertNodeDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.LocationTree.UpsertNodeDto"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpsertNodeDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.LocationTree.UpsertNodeDto"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/UpsertNodeDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.LocationTree.UpsertNodeDto"
               }
             }
           }
@@ -4899,17 +4998,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateSuburbDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.LocationTree.CreateSuburbDto"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateSuburbDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.LocationTree.CreateSuburbDto"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateSuburbDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.LocationTree.CreateSuburbDto"
               }
             }
           }
@@ -4941,17 +5040,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpsertNodeDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.LocationTree.UpsertNodeDto"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpsertNodeDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.LocationTree.UpsertNodeDto"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/UpsertNodeDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.LocationTree.UpsertNodeDto"
               }
             }
           }
@@ -5056,17 +5155,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateCampaignDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Campaigns.CreateCampaignDto"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateCampaignDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Campaigns.CreateCampaignDto"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateCampaignDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Campaigns.CreateCampaignDto"
               }
             }
           }
@@ -5119,17 +5218,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateCampaignDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Campaigns.UpdateCampaignDto"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateCampaignDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Campaigns.UpdateCampaignDto"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateCampaignDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Campaigns.UpdateCampaignDto"
               }
             }
           }
@@ -5187,6 +5286,29 @@
             }
           }
         },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/media/listing-images/{imageId}": {
+      "get": {
+        "tags": [
+          "Media"
+        ],
+        "parameters": [
+          {
+            "name": "imageId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "OK"
@@ -5818,17 +5940,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateFeeConfigurationDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Fees.UpdateFeeConfigurationDto"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateFeeConfigurationDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Fees.UpdateFeeConfigurationDto"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateFeeConfigurationDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Fees.UpdateFeeConfigurationDto"
               }
             }
           }
@@ -5861,17 +5983,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateProfileDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.User.UpdateProfileDto"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateProfileDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.User.UpdateProfileDto"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateProfileDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.User.UpdateProfileDto"
               }
             }
           }
@@ -6016,17 +6138,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/SubmitQuotationDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Quotations.SubmitQuotationDto"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/SubmitQuotationDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Quotations.SubmitQuotationDto"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/SubmitQuotationDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Quotations.SubmitQuotationDto"
               }
             }
           }
@@ -6127,17 +6249,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ProcessRefundDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Refunds.ProcessRefundDto"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/ProcessRefundDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Refunds.ProcessRefundDto"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/ProcessRefundDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Refunds.ProcessRefundDto"
               }
             }
           }
@@ -6158,17 +6280,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateReviewDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Reviews.CreateReviewDto"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateReviewDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Reviews.CreateReviewDto"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateReviewDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Reviews.CreateReviewDto"
               }
             }
           }
@@ -6269,17 +6391,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateReviewDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Reviews.UpdateReviewDto"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateReviewDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Reviews.UpdateReviewDto"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateReviewDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Reviews.UpdateReviewDto"
               }
             }
           }
@@ -6395,17 +6517,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateListingDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Listings.CreateListingDto"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateListingDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Listings.CreateListingDto"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateListingDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Listings.CreateListingDto"
               }
             }
           }
@@ -6507,17 +6629,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ImportListingsJsonRequestDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Listings.ImportListingsJsonRequestDto"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/ImportListingsJsonRequestDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Listings.ImportListingsJsonRequestDto"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/ImportListingsJsonRequestDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Listings.ImportListingsJsonRequestDto"
               }
             }
           }
@@ -6660,17 +6782,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateListingDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Listings.UpdateListingDto"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateListingDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Listings.UpdateListingDto"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateListingDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Listings.UpdateListingDto"
               }
             }
           }
@@ -6757,17 +6879,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/RequestPayoutDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Payouts.RequestPayoutDto"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/RequestPayoutDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Payouts.RequestPayoutDto"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/RequestPayoutDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Payouts.RequestPayoutDto"
               }
             }
           }
@@ -6933,17 +7055,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateInternalUserDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.User.CreateInternalUserDto"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateInternalUserDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.User.CreateInternalUserDto"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateInternalUserDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.User.CreateInternalUserDto"
               }
             }
           }
@@ -6975,17 +7097,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateAccountStatusDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.User.UpdateAccountStatusDto"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateAccountStatusDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.User.UpdateAccountStatusDto"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateAccountStatusDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.User.UpdateAccountStatusDto"
               }
             }
           }
@@ -7017,17 +7139,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateUserRoleDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.User.UpdateUserRoleDto"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateUserRoleDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.User.UpdateUserRoleDto"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/UpdateUserRoleDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.User.UpdateUserRoleDto"
               }
             }
           }
@@ -7081,17 +7203,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/AddWishlistItemDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Wishlist.AddWishlistItemDto"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/AddWishlistItemDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Wishlist.AddWishlistItemDto"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/AddWishlistItemDto"
+                "$ref": "#/components/schemas/EquaMeridian.DTOs.Wishlist.AddWishlistItemDto"
               }
             }
           }
@@ -7178,141 +7300,165 @@
         },
         "additionalProperties": false
       },
-      "AddCartItemDto": {
+      "EquaMeridian.DTOs.Auth.ForgotPasswordRequest": {
         "required": [
-          "endDate",
-          "listingID",
-          "quantity",
-          "startDate"
+          "email"
         ],
         "type": "object",
         "properties": {
-          "listingID": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "startDate": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "endDate": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "quantity": {
-            "maximum": 2147483647,
-            "minimum": 1,
-            "type": "integer",
-            "format": "int32"
-          },
-          "fulfillmentMethod": {
-            "type": "string",
-            "nullable": true
-          },
-          "deliveryAddress": {
-            "maxLength": 300,
-            "minLength": 0,
-            "type": "string",
-            "nullable": true
-          }
-        },
-        "additionalProperties": false
-      },
-      "AddWishlistItemDto": {
-        "required": [
-          "listingID"
-        ],
-        "type": "object",
-        "properties": {
-          "listingID": {
-            "type": "integer",
-            "format": "int32"
-          }
-        },
-        "additionalProperties": false
-      },
-      "AdminDeleteReviewDto": {
-        "required": [
-          "reason"
-        ],
-        "type": "object",
-        "properties": {
-          "reason": {
-            "maxLength": 300,
+          "email": {
             "minLength": 1,
-            "type": "string"
-          }
-        },
-        "additionalProperties": false
-      },
-      "CancelBookingDto": {
-        "type": "object",
-        "properties": {
-          "reason": {
             "type": "string",
-            "nullable": true
+            "format": "email"
           }
         },
         "additionalProperties": false
       },
-      "ChatbotAskDto": {
+      "EquaMeridian.DTOs.Auth.LoginRequest": {
         "required": [
-          "message"
+          "email",
+          "password"
         ],
         "type": "object",
         "properties": {
-          "message": {
-            "maxLength": 500,
+          "email": {
+            "minLength": 1,
+            "type": "string",
+            "format": "email"
+          },
+          "password": {
             "minLength": 1,
             "type": "string"
           },
-          "sessionId": {
-            "maxLength": 64,
-            "minLength": 0,
-            "type": "string",
-            "nullable": true
-          }
-        },
-        "additionalProperties": false
-      },
-      "ChatbotFeedbackDto": {
-        "type": "object",
-        "properties": {
-          "sessionId": {
-            "maxLength": 64,
-            "minLength": 0,
-            "type": "string",
-            "nullable": true
-          },
-          "intent": {
-            "maxLength": 80,
-            "minLength": 0,
-            "type": "string",
-            "nullable": true
-          },
-          "helpful": {
+          "keepMeSignedIn": {
             "type": "boolean"
-          },
-          "comment": {
-            "maxLength": 300,
-            "minLength": 0,
-            "type": "string",
-            "nullable": true
           }
         },
         "additionalProperties": false
       },
-      "CheckoutRequestDto": {
+      "EquaMeridian.DTOs.Auth.RegisterRequest": {
+        "required": [
+          "email",
+          "fullName",
+          "password",
+          "role"
+        ],
         "type": "object",
         "properties": {
-          "promoCode": {
+          "fullName": {
+            "maxLength": 200,
+            "minLength": 1,
+            "pattern": "^[a-zA-Z][a-zA-Z\\s\\-\\']*$",
+            "type": "string"
+          },
+          "email": {
+            "minLength": 1,
+            "type": "string",
+            "format": "email"
+          },
+          "password": {
+            "minLength": 8,
+            "type": "string"
+          },
+          "role": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "companyName": {
+            "maxLength": 200,
+            "pattern": "^$|^[a-zA-Z0-9][a-zA-Z0-9\\s.\\-&',()]*$",
+            "type": "string",
+            "nullable": true
+          },
+          "phoneNumber": {
+            "pattern": "^(\\+27[0-9]{9}|0[0-9]{9})$",
             "type": "string",
             "nullable": true
           }
         },
         "additionalProperties": false
       },
-      "ConfirmDeliveryDto": {
+      "EquaMeridian.DTOs.Auth.ResendOtpRequest": {
+        "required": [
+          "otpReference"
+        ],
+        "type": "object",
+        "properties": {
+          "otpReference": {
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "EquaMeridian.DTOs.Auth.ResetPasswordRequest": {
+        "required": [
+          "confirmPassword",
+          "newPassword",
+          "token"
+        ],
+        "type": "object",
+        "properties": {
+          "token": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "newPassword": {
+            "minLength": 8,
+            "type": "string"
+          },
+          "confirmPassword": {
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "EquaMeridian.DTOs.Auth.ToggleTwoFactorRequest": {
+        "required": [
+          "password"
+        ],
+        "type": "object",
+        "properties": {
+          "password": {
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "EquaMeridian.DTOs.Auth.VerifyOtpRequest": {
+        "required": [
+          "code",
+          "otpReference"
+        ],
+        "type": "object",
+        "properties": {
+          "otpReference": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "code": {
+            "maxLength": 6,
+            "minLength": 6,
+            "type": "string"
+          },
+          "keepMeSignedIn": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false
+      },
+      "EquaMeridian.DTOs.Bookings.CancelBookingDto": {
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "EquaMeridian.DTOs.Bookings.ConfirmDeliveryDto": {
         "type": "object",
         "properties": {
           "deliveryMethod": {
@@ -7342,14 +7488,30 @@
         },
         "additionalProperties": false
       },
-      "ConfirmOutcomeDto": {
+      "EquaMeridian.DTOs.Bookings.RequestReturnDto": {
         "required": [
-          "outcome"
+          "pickupLocation",
+          "pickupTimeWindow",
+          "preferredPickupDate",
+          "returnReason"
         ],
         "type": "object",
         "properties": {
-          "outcome": {
+          "returnReason": {
             "minLength": 1,
+            "type": "string"
+          },
+          "preferredPickupDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "pickupTimeWindow": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "pickupLocation": {
+            "maxLength": 300,
+            "minLength": 5,
             "type": "string"
           },
           "notes": {
@@ -7359,30 +7521,21 @@
         },
         "additionalProperties": false
       },
-      "CreateAnnouncementRequest": {
+      "EquaMeridian.DTOs.Bookings.UpdateDeliveryAddressDto": {
         "required": [
-          "body",
-          "title"
+          "deliveryAddress"
         ],
         "type": "object",
         "properties": {
-          "title": {
-            "maxLength": 200,
-            "minLength": 1,
+          "deliveryAddress": {
+            "maxLength": 300,
+            "minLength": 5,
             "type": "string"
-          },
-          "body": {
-            "minLength": 1,
-            "type": "string"
-          },
-          "targetRole": {
-            "type": "string",
-            "nullable": true
           }
         },
         "additionalProperties": false
       },
-      "CreateCampaignDto": {
+      "EquaMeridian.DTOs.Campaigns.CreateCampaignDto": {
         "required": [
           "audience",
           "description",
@@ -7443,46 +7596,420 @@
         },
         "additionalProperties": false
       },
-      "CreateCityDto": {
+      "EquaMeridian.DTOs.Campaigns.UpdateCampaignDto": {
+        "required": [
+          "audience",
+          "description",
+          "endDate",
+          "name",
+          "startDate",
+          "status"
+        ],
         "type": "object",
         "properties": {
-          "provinceID": {
+          "name": {
+            "maxLength": 200,
+            "minLength": 1,
+            "type": "string"
+          },
+          "description": {
+            "maxLength": 2000,
+            "minLength": 1,
+            "type": "string"
+          },
+          "audience": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "startDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "endDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "status": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "bannerImageURL": {
+            "type": "string",
+            "nullable": true
+          },
+          "discountValue": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "discountCode": {
+            "type": "string",
+            "nullable": true
+          },
+          "featuredListingID": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "EquaMeridian.DTOs.Cart.AddCartItemDto": {
+        "required": [
+          "endDate",
+          "listingID",
+          "quantity",
+          "startDate"
+        ],
+        "type": "object",
+        "properties": {
+          "listingID": {
             "type": "integer",
             "format": "int32"
           },
-          "name": {
+          "startDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "endDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "quantity": {
+            "maximum": 2147483647,
+            "minimum": 1,
+            "type": "integer",
+            "format": "int32"
+          },
+          "fulfillmentMethod": {
+            "type": "string",
+            "nullable": true
+          },
+          "deliveryAddress": {
+            "maxLength": 300,
+            "minLength": 0,
             "type": "string",
             "nullable": true
           }
         },
         "additionalProperties": false
       },
-      "CreateInternalUserDto": {
+      "EquaMeridian.DTOs.Cart.CheckoutRequestDto": {
+        "type": "object",
+        "properties": {
+          "promoCode": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "EquaMeridian.DTOs.Cart.UpdateCartItemDto": {
         "required": [
-          "email",
-          "fullName",
-          "role"
+          "endDate",
+          "quantity",
+          "startDate"
         ],
         "type": "object",
         "properties": {
-          "fullName": {
-            "maxLength": 200,
-            "minLength": 1,
-            "type": "string"
-          },
-          "email": {
-            "minLength": 1,
+          "startDate": {
             "type": "string",
-            "format": "email"
+            "format": "date-time"
           },
-          "role": {
+          "endDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "quantity": {
+            "maximum": 2147483647,
+            "minimum": 1,
+            "type": "integer",
+            "format": "int32"
+          },
+          "fulfillmentMethod": {
+            "type": "string",
+            "nullable": true
+          },
+          "deliveryAddress": {
+            "maxLength": 300,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "EquaMeridian.DTOs.Categories.UpsertCategoryDto": {
+        "required": [
+          "name"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "maxLength": 100,
             "minLength": 1,
             "type": "string"
           }
         },
         "additionalProperties": false
       },
-      "CreateListingDto": {
+      "EquaMeridian.DTOs.Chatbot.ChatbotAskDto": {
+        "required": [
+          "message"
+        ],
+        "type": "object",
+        "properties": {
+          "message": {
+            "maxLength": 500,
+            "minLength": 1,
+            "type": "string"
+          },
+          "sessionId": {
+            "maxLength": 64,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "EquaMeridian.DTOs.Chatbot.ChatbotFeedbackDto": {
+        "type": "object",
+        "properties": {
+          "sessionId": {
+            "maxLength": 64,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
+          },
+          "intent": {
+            "maxLength": 80,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
+          },
+          "helpful": {
+            "type": "boolean"
+          },
+          "comment": {
+            "maxLength": 300,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "EquaMeridian.DTOs.DatabaseBackup.RestoreBackupRequest": {
+        "required": [
+          "fileName"
+        ],
+        "type": "object",
+        "properties": {
+          "fileName": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "confirmOverride": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false
+      },
+      "EquaMeridian.DTOs.Disputes.ResolveDisputeDto": {
+        "required": [
+          "resolutionNotes",
+          "resolutionOutcome"
+        ],
+        "type": "object",
+        "properties": {
+          "resolutionOutcome": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "resolutionNotes": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "refundAmount": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "EquaMeridian.DTOs.Documents.ReviewDocumentDto": {
+        "required": [
+          "decision"
+        ],
+        "type": "object",
+        "properties": {
+          "decision": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "reason": {
+            "maxLength": 1000,
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "EquaMeridian.DTOs.Fees.UpdateFeeConfigurationDto": {
+        "required": [
+          "commissionRate",
+          "deliveryBaseFee",
+          "deliveryFreeRadiusKm",
+          "deliveryRatePerKm",
+          "maxFee",
+          "minFee",
+          "vatRate"
+        ],
+        "type": "object",
+        "properties": {
+          "commissionRate": {
+            "maximum": 100,
+            "minimum": 0,
+            "type": "number",
+            "format": "double"
+          },
+          "minFee": {
+            "minimum": 0,
+            "type": "number",
+            "format": "double"
+          },
+          "maxFee": {
+            "minimum": 0,
+            "type": "number",
+            "format": "double"
+          },
+          "vatInclusive": {
+            "type": "boolean"
+          },
+          "vatRate": {
+            "maximum": 30,
+            "minimum": 0,
+            "type": "number",
+            "format": "double"
+          },
+          "deliveryBaseFee": {
+            "minimum": 0,
+            "type": "number",
+            "format": "double"
+          },
+          "deliveryFreeRadiusKm": {
+            "minimum": 0,
+            "type": "number",
+            "format": "double"
+          },
+          "deliveryRatePerKm": {
+            "minimum": 0,
+            "type": "number",
+            "format": "double"
+          }
+        },
+        "additionalProperties": false
+      },
+      "EquaMeridian.DTOs.Fees.UpsertDiscountTierDto": {
+        "required": [
+          "discountPercent",
+          "minDays"
+        ],
+        "type": "object",
+        "properties": {
+          "categoryID": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "minDays": {
+            "maximum": 2147483647,
+            "minimum": 1,
+            "type": "integer",
+            "format": "int32"
+          },
+          "maxDays": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "discountPercent": {
+            "maximum": 100,
+            "minimum": 0,
+            "type": "number",
+            "format": "double"
+          }
+        },
+        "additionalProperties": false
+      },
+      "EquaMeridian.DTOs.Inspections.ConfirmOutcomeDto": {
+        "required": [
+          "outcome"
+        ],
+        "type": "object",
+        "properties": {
+          "outcome": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "notes": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "EquaMeridian.DTOs.Inspections.RequestInspectionDto": {
+        "required": [
+          "listingID",
+          "scheduledDate"
+        ],
+        "type": "object",
+        "properties": {
+          "listingID": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "scheduledDate": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": false
+      },
+      "EquaMeridian.DTOs.LeaseAgreements.SignLeaseAgreementDto": {
+        "required": [
+          "acknowledgeLegallyBinding",
+          "acknowledgeTermsRead",
+          "fullName"
+        ],
+        "type": "object",
+        "properties": {
+          "acknowledgeTermsRead": {
+            "type": "boolean"
+          },
+          "acknowledgeLegallyBinding": {
+            "type": "boolean"
+          },
+          "fullName": {
+            "maxLength": 150,
+            "minLength": 2,
+            "type": "string"
+          },
+          "signingDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "digitalSignature": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "EquaMeridian.DTOs.Listings.CreateListingDto": {
         "required": [
           "agreeToMasterLeaseAgreement",
           "categoryID",
@@ -7601,181 +8128,17 @@
         },
         "additionalProperties": false
       },
-      "CreateQuotationRequestDto": {
-        "required": [
-          "deliveryAddress",
-          "endDate",
-          "listingID",
-          "preferredContact",
-          "startDate"
-        ],
-        "type": "object",
-        "properties": {
-          "listingID": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "startDate": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "endDate": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "quantity": {
-            "maximum": 10,
-            "minimum": 1,
-            "type": "integer",
-            "format": "int32"
-          },
-          "deliveryAddress": {
-            "maxLength": 300,
-            "minLength": 5,
-            "type": "string"
-          },
-          "specialRequirements": {
-            "maxLength": 500,
-            "minLength": 0,
-            "type": "string",
-            "nullable": true
-          },
-          "preferredContact": {
-            "minLength": 1,
-            "type": "string"
-          }
-        },
-        "additionalProperties": false
-      },
-      "CreateRefundRequestDto": {
-        "required": [
-          "reason"
-        ],
-        "type": "object",
-        "properties": {
-          "invoiceID": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "reason": {
-            "minLength": 1,
-            "type": "string"
-          }
-        },
-        "additionalProperties": false
-      },
-      "CreateReviewDto": {
-        "required": [
-          "bookingID",
-          "confirmedGenuine",
-          "overallRating",
-          "reviewText",
-          "title"
-        ],
-        "type": "object",
-        "properties": {
-          "bookingID": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "overallRating": {
-            "maximum": 5,
-            "minimum": 1,
-            "type": "integer",
-            "format": "int32"
-          },
-          "aspectRatings": {
-            "type": "object",
-            "additionalProperties": {
-              "type": "integer",
-              "format": "int32"
-            },
-            "nullable": true
-          },
-          "title": {
-            "maxLength": 150,
-            "minLength": 1,
-            "type": "string"
-          },
-          "reviewText": {
-            "maxLength": 500,
-            "minLength": 1,
-            "type": "string"
-          },
-          "confirmedGenuine": {
-            "type": "boolean"
-          }
-        },
-        "additionalProperties": false
-      },
-      "CreateRoleRequest": {
-        "required": [
-          "roleName"
-        ],
-        "type": "object",
-        "properties": {
-          "roleName": {
-            "maxLength": 50,
-            "minLength": 1,
-            "type": "string"
-          },
-          "description": {
-            "maxLength": 300,
-            "type": "string",
-            "nullable": true
-          },
-          "permissionKeys": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "nullable": true
-          }
-        },
-        "additionalProperties": false
-      },
-      "CreateSuburbDto": {
-        "type": "object",
-        "properties": {
-          "cityID": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "name": {
-            "type": "string",
-            "nullable": true
-          }
-        },
-        "additionalProperties": false
-      },
-      "ForgotPasswordRequest": {
-        "required": [
-          "email"
-        ],
-        "type": "object",
-        "properties": {
-          "email": {
-            "minLength": 1,
-            "type": "string",
-            "format": "email"
-          }
-        },
-        "additionalProperties": false
-      },
-      "ImportListingJsonItemDto": {
+      "EquaMeridian.DTOs.Listings.ImportListingJsonItemDto": {
         "type": "object",
         "properties": {
           "title": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "category": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "description": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "dailyRate": {
             "type": "number",
@@ -7819,141 +8182,19 @@
         },
         "additionalProperties": false
       },
-      "ImportListingsJsonRequestDto": {
+      "EquaMeridian.DTOs.Listings.ImportListingsJsonRequestDto": {
         "type": "object",
         "properties": {
           "listings": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/ImportListingJsonItemDto"
-            },
-            "nullable": true
+              "$ref": "#/components/schemas/EquaMeridian.DTOs.Listings.ImportListingJsonItemDto"
+            }
           }
         },
         "additionalProperties": false
       },
-      "LoginRequest": {
-        "required": [
-          "email",
-          "password"
-        ],
-        "type": "object",
-        "properties": {
-          "email": {
-            "minLength": 1,
-            "type": "string",
-            "format": "email"
-          },
-          "password": {
-            "minLength": 1,
-            "type": "string"
-          },
-          "keepMeSignedIn": {
-            "type": "boolean"
-          }
-        },
-        "additionalProperties": false
-      },
-      "ProcessPayoutDto": {
-        "required": [
-          "newStatus"
-        ],
-        "type": "object",
-        "properties": {
-          "newStatus": {
-            "minLength": 1,
-            "type": "string"
-          },
-          "administratorNotes": {
-            "type": "string",
-            "nullable": true
-          },
-          "declineReason": {
-            "type": "string",
-            "nullable": true
-          }
-        },
-        "additionalProperties": false
-      },
-      "ProcessRefundDto": {
-        "required": [
-          "newStatus"
-        ],
-        "type": "object",
-        "properties": {
-          "newStatus": {
-            "minLength": 1,
-            "type": "string"
-          },
-          "administratorNotes": {
-            "type": "string",
-            "nullable": true
-          },
-          "failureReason": {
-            "type": "string",
-            "nullable": true
-          }
-        },
-        "additionalProperties": false
-      },
-      "PromoValidateRequest": {
-        "type": "object",
-        "properties": {
-          "code": {
-            "type": "string",
-            "nullable": true
-          },
-          "listingId": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true
-          }
-        },
-        "additionalProperties": false
-      },
-      "RegisterRequest": {
-        "required": [
-          "email",
-          "fullName",
-          "password",
-          "role"
-        ],
-        "type": "object",
-        "properties": {
-          "fullName": {
-            "maxLength": 200,
-            "minLength": 1,
-            "pattern": "^[a-zA-Z][a-zA-Z\\s\\-\\']*$",
-            "type": "string"
-          },
-          "email": {
-            "minLength": 1,
-            "type": "string",
-            "format": "email"
-          },
-          "password": {
-            "minLength": 8,
-            "type": "string"
-          },
-          "role": {
-            "minLength": 1,
-            "type": "string"
-          },
-          "companyName": {
-            "maxLength": 200,
-            "pattern": "^$|^[a-zA-Z0-9][a-zA-Z0-9\\s.\\-&',()]*$",
-            "type": "string",
-            "nullable": true
-          },
-          "phoneNumber": {
-            "pattern": "^(\\+27[0-9]{9}|0[0-9]{9})$",
-            "type": "string",
-            "nullable": true
-          }
-        },
-        "additionalProperties": false
-      },
-      "RejectListingDto": {
+      "EquaMeridian.DTOs.Listings.RejectListingDto": {
         "required": [
           "reason"
         ],
@@ -7966,37 +8207,7 @@
         },
         "additionalProperties": false
       },
-      "RejectQuotationDto": {
-        "type": "object",
-        "properties": {
-          "reason": {
-            "maxLength": 500,
-            "minLength": 0,
-            "type": "string",
-            "nullable": true
-          }
-        },
-        "additionalProperties": false
-      },
-      "RequestInspectionDto": {
-        "required": [
-          "listingID",
-          "scheduledDate"
-        ],
-        "type": "object",
-        "properties": {
-          "listingID": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "scheduledDate": {
-            "type": "string",
-            "format": "date-time"
-          }
-        },
-        "additionalProperties": false
-      },
-      "RequestListingChangesDto": {
+      "EquaMeridian.DTOs.Listings.RequestListingChangesDto": {
         "required": [
           "comments"
         ],
@@ -8009,395 +8220,7 @@
         },
         "additionalProperties": false
       },
-      "RequestPayoutDto": {
-        "required": [
-          "invoiceID"
-        ],
-        "type": "object",
-        "properties": {
-          "invoiceID": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "supplierNotes": {
-            "type": "string",
-            "nullable": true
-          }
-        },
-        "additionalProperties": false
-      },
-      "RequestReturnDto": {
-        "required": [
-          "pickupLocation",
-          "pickupTimeWindow",
-          "preferredPickupDate",
-          "returnReason"
-        ],
-        "type": "object",
-        "properties": {
-          "returnReason": {
-            "minLength": 1,
-            "type": "string"
-          },
-          "preferredPickupDate": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "pickupTimeWindow": {
-            "minLength": 1,
-            "type": "string"
-          },
-          "pickupLocation": {
-            "maxLength": 300,
-            "minLength": 5,
-            "type": "string"
-          },
-          "notes": {
-            "type": "string",
-            "nullable": true
-          }
-        },
-        "additionalProperties": false
-      },
-      "ResendOtpRequest": {
-        "required": [
-          "otpReference"
-        ],
-        "type": "object",
-        "properties": {
-          "otpReference": {
-            "minLength": 1,
-            "type": "string"
-          }
-        },
-        "additionalProperties": false
-      },
-      "ResolveDisputeDto": {
-        "required": [
-          "resolutionNotes",
-          "resolutionOutcome"
-        ],
-        "type": "object",
-        "properties": {
-          "resolutionOutcome": {
-            "minLength": 1,
-            "type": "string"
-          },
-          "resolutionNotes": {
-            "minLength": 1,
-            "type": "string"
-          },
-          "refundAmount": {
-            "type": "number",
-            "format": "double",
-            "nullable": true
-          }
-        },
-        "additionalProperties": false
-      },
-      "RestoreBackupRequest": {
-        "required": [
-          "fileName"
-        ],
-        "type": "object",
-        "properties": {
-          "fileName": {
-            "minLength": 1,
-            "type": "string"
-          },
-          "confirmOverride": {
-            "type": "boolean"
-          }
-        },
-        "additionalProperties": false
-      },
-      "ReviewDocumentDto": {
-        "required": [
-          "decision"
-        ],
-        "type": "object",
-        "properties": {
-          "decision": {
-            "minLength": 1,
-            "type": "string"
-          },
-          "reason": {
-            "maxLength": 1000,
-            "type": "string",
-            "nullable": true
-          }
-        },
-        "additionalProperties": false
-      },
-      "SignLeaseAgreementDto": {
-        "required": [
-          "acknowledgeLegallyBinding",
-          "acknowledgeTermsRead",
-          "fullName"
-        ],
-        "type": "object",
-        "properties": {
-          "acknowledgeTermsRead": {
-            "type": "boolean"
-          },
-          "acknowledgeLegallyBinding": {
-            "type": "boolean"
-          },
-          "fullName": {
-            "maxLength": 150,
-            "minLength": 2,
-            "type": "string"
-          },
-          "signingDate": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "digitalSignature": {
-            "type": "string",
-            "nullable": true
-          }
-        },
-        "additionalProperties": false
-      },
-      "SubmitQuotationDto": {
-        "required": [
-          "dailyRateZAR",
-          "quoteValidUntil"
-        ],
-        "type": "object",
-        "properties": {
-          "dailyRateZAR": {
-            "minimum": 0,01,
-            "type": "number",
-            "format": "double"
-          },
-          "weeklyRateZAR": {
-            "type": "number",
-            "format": "double",
-            "nullable": true
-          },
-          "quoteValidUntil": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "notesToCustomer": {
-            "type": "string",
-            "nullable": true
-          },
-          "vatRate": {
-            "maximum": 30,
-            "minimum": 0,
-            "type": "number",
-            "format": "double",
-            "nullable": true
-          },
-          "securityDeposit": {
-            "minimum": 0,
-            "type": "number",
-            "format": "double",
-            "nullable": true
-          },
-          "damageWaiverFee": {
-            "minimum": 0,
-            "type": "number",
-            "format": "double",
-            "nullable": true
-          }
-        },
-        "additionalProperties": false
-      },
-      "ToggleTwoFactorRequest": {
-        "required": [
-          "password"
-        ],
-        "type": "object",
-        "properties": {
-          "password": {
-            "minLength": 1,
-            "type": "string"
-          }
-        },
-        "additionalProperties": false
-      },
-      "UpdateAccountStatusDto": {
-        "required": [
-          "newStatus"
-        ],
-        "type": "object",
-        "properties": {
-          "newStatus": {
-            "minLength": 1,
-            "type": "string"
-          },
-          "confirmOverride": {
-            "type": "boolean"
-          }
-        },
-        "additionalProperties": false
-      },
-      "UpdateCampaignDto": {
-        "required": [
-          "audience",
-          "description",
-          "endDate",
-          "name",
-          "startDate",
-          "status"
-        ],
-        "type": "object",
-        "properties": {
-          "name": {
-            "maxLength": 200,
-            "minLength": 1,
-            "type": "string"
-          },
-          "description": {
-            "maxLength": 2000,
-            "minLength": 1,
-            "type": "string"
-          },
-          "audience": {
-            "minLength": 1,
-            "type": "string"
-          },
-          "startDate": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "endDate": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "status": {
-            "minLength": 1,
-            "type": "string"
-          },
-          "bannerImageURL": {
-            "type": "string",
-            "nullable": true
-          },
-          "discountValue": {
-            "type": "number",
-            "format": "double",
-            "nullable": true
-          },
-          "discountCode": {
-            "type": "string",
-            "nullable": true
-          },
-          "featuredListingID": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true
-          }
-        },
-        "additionalProperties": false
-      },
-      "UpdateCartItemDto": {
-        "required": [
-          "endDate",
-          "quantity",
-          "startDate"
-        ],
-        "type": "object",
-        "properties": {
-          "startDate": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "endDate": {
-            "type": "string",
-            "format": "date-time"
-          },
-          "quantity": {
-            "maximum": 2147483647,
-            "minimum": 1,
-            "type": "integer",
-            "format": "int32"
-          },
-          "fulfillmentMethod": {
-            "type": "string",
-            "nullable": true
-          },
-          "deliveryAddress": {
-            "maxLength": 300,
-            "minLength": 0,
-            "type": "string",
-            "nullable": true
-          }
-        },
-        "additionalProperties": false
-      },
-      "UpdateDeliveryAddressDto": {
-        "required": [
-          "deliveryAddress"
-        ],
-        "type": "object",
-        "properties": {
-          "deliveryAddress": {
-            "maxLength": 300,
-            "minLength": 5,
-            "type": "string"
-          }
-        },
-        "additionalProperties": false
-      },
-      "UpdateFeeConfigurationDto": {
-        "required": [
-          "commissionRate",
-          "deliveryBaseFee",
-          "deliveryFreeRadiusKm",
-          "deliveryRatePerKm",
-          "maxFee",
-          "minFee",
-          "vatRate"
-        ],
-        "type": "object",
-        "properties": {
-          "commissionRate": {
-            "maximum": 100,
-            "minimum": 0,
-            "type": "number",
-            "format": "double"
-          },
-          "minFee": {
-            "minimum": 0,
-            "type": "number",
-            "format": "double"
-          },
-          "maxFee": {
-            "minimum": 0,
-            "type": "number",
-            "format": "double"
-          },
-          "vatInclusive": {
-            "type": "boolean"
-          },
-          "vatRate": {
-            "maximum": 30,
-            "minimum": 0,
-            "type": "number",
-            "format": "double"
-          },
-          "deliveryBaseFee": {
-            "minimum": 0,
-            "type": "number",
-            "format": "double"
-          },
-          "deliveryFreeRadiusKm": {
-            "minimum": 0,
-            "type": "number",
-            "format": "double"
-          },
-          "deliveryRatePerKm": {
-            "minimum": 0,
-            "type": "number",
-            "format": "double"
-          }
-        },
-        "additionalProperties": false
-      },
-      "UpdateListingDto": {
+      "EquaMeridian.DTOs.Listings.UpdateListingDto": {
         "required": [
           "categoryID",
           "dailyRateZAR",
@@ -8512,7 +8335,7 @@
         },
         "additionalProperties": false
       },
-      "UpdateListingStatusDto": {
+      "EquaMeridian.DTOs.Listings.UpdateListingStatusDto": {
         "required": [
           "newStatus"
         ],
@@ -8529,7 +8352,444 @@
         },
         "additionalProperties": false
       },
-      "UpdateProfileDto": {
+      "EquaMeridian.DTOs.LocationTree.CreateCityDto": {
+        "type": "object",
+        "properties": {
+          "provinceID": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "EquaMeridian.DTOs.LocationTree.CreateSuburbDto": {
+        "type": "object",
+        "properties": {
+          "cityID": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "EquaMeridian.DTOs.LocationTree.UpsertNodeDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "EquaMeridian.DTOs.Notifications.CreateAnnouncementRequest": {
+        "required": [
+          "body",
+          "title"
+        ],
+        "type": "object",
+        "properties": {
+          "title": {
+            "maxLength": 200,
+            "minLength": 1,
+            "type": "string"
+          },
+          "body": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "targetRole": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "EquaMeridian.DTOs.Payouts.ProcessPayoutDto": {
+        "required": [
+          "newStatus"
+        ],
+        "type": "object",
+        "properties": {
+          "newStatus": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "administratorNotes": {
+            "type": "string",
+            "nullable": true
+          },
+          "declineReason": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "EquaMeridian.DTOs.Payouts.RequestPayoutDto": {
+        "required": [
+          "invoiceID"
+        ],
+        "type": "object",
+        "properties": {
+          "invoiceID": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "supplierNotes": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "EquaMeridian.DTOs.Quotations.CreateQuotationRequestDto": {
+        "required": [
+          "deliveryAddress",
+          "endDate",
+          "listingID",
+          "preferredContact",
+          "startDate"
+        ],
+        "type": "object",
+        "properties": {
+          "listingID": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "startDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "endDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "quantity": {
+            "maximum": 10,
+            "minimum": 1,
+            "type": "integer",
+            "format": "int32"
+          },
+          "deliveryAddress": {
+            "maxLength": 300,
+            "minLength": 5,
+            "type": "string"
+          },
+          "specialRequirements": {
+            "maxLength": 500,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
+          },
+          "preferredContact": {
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "EquaMeridian.DTOs.Quotations.RejectQuotationDto": {
+        "type": "object",
+        "properties": {
+          "reason": {
+            "maxLength": 500,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "EquaMeridian.DTOs.Quotations.SubmitQuotationDto": {
+        "required": [
+          "dailyRateZAR",
+          "quoteValidUntil"
+        ],
+        "type": "object",
+        "properties": {
+          "dailyRateZAR": {
+            "minimum": 0,01,
+            "type": "number",
+            "format": "double"
+          },
+          "weeklyRateZAR": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "quoteValidUntil": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "notesToCustomer": {
+            "type": "string",
+            "nullable": true
+          },
+          "vatRate": {
+            "maximum": 30,
+            "minimum": 0,
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "securityDeposit": {
+            "minimum": 0,
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "damageWaiverFee": {
+            "minimum": 0,
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "EquaMeridian.DTOs.Refunds.CreateRefundRequestDto": {
+        "required": [
+          "reason"
+        ],
+        "type": "object",
+        "properties": {
+          "invoiceID": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "reason": {
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "EquaMeridian.DTOs.Refunds.ProcessRefundDto": {
+        "required": [
+          "newStatus"
+        ],
+        "type": "object",
+        "properties": {
+          "newStatus": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "administratorNotes": {
+            "type": "string",
+            "nullable": true
+          },
+          "failureReason": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "EquaMeridian.DTOs.Reviews.AdminDeleteReviewDto": {
+        "required": [
+          "reason"
+        ],
+        "type": "object",
+        "properties": {
+          "reason": {
+            "maxLength": 300,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "EquaMeridian.DTOs.Reviews.CreateReviewDto": {
+        "required": [
+          "bookingID",
+          "confirmedGenuine",
+          "overallRating",
+          "reviewText",
+          "title"
+        ],
+        "type": "object",
+        "properties": {
+          "bookingID": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "overallRating": {
+            "maximum": 5,
+            "minimum": 1,
+            "type": "integer",
+            "format": "int32"
+          },
+          "aspectRatings": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "nullable": true
+          },
+          "title": {
+            "maxLength": 150,
+            "minLength": 1,
+            "type": "string"
+          },
+          "reviewText": {
+            "maxLength": 500,
+            "minLength": 1,
+            "type": "string"
+          },
+          "confirmedGenuine": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false
+      },
+      "EquaMeridian.DTOs.Reviews.UpdateReviewDto": {
+        "required": [
+          "overallRating",
+          "reviewText",
+          "title"
+        ],
+        "type": "object",
+        "properties": {
+          "overallRating": {
+            "maximum": 5,
+            "minimum": 1,
+            "type": "integer",
+            "format": "int32"
+          },
+          "aspectRatings": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "nullable": true
+          },
+          "title": {
+            "maxLength": 150,
+            "minLength": 1,
+            "type": "string"
+          },
+          "reviewText": {
+            "maxLength": 500,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "EquaMeridian.DTOs.Roles.CreateRoleRequest": {
+        "required": [
+          "roleName"
+        ],
+        "type": "object",
+        "properties": {
+          "roleName": {
+            "maxLength": 50,
+            "minLength": 1,
+            "type": "string"
+          },
+          "description": {
+            "maxLength": 300,
+            "type": "string",
+            "nullable": true
+          },
+          "permissionKeys": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "additionalProperties": false
+      },
+      "EquaMeridian.DTOs.Roles.UpdateRolePermissionsRequest": {
+        "type": "object",
+        "properties": {
+          "permissionKeys": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "additionalProperties": false
+      },
+      "EquaMeridian.DTOs.Timers.UpdateTimerConfigurationRequest": {
+        "type": "object",
+        "properties": {
+          "intervalMinutes": {
+            "maximum": 1440,
+            "minimum": 1,
+            "type": "integer",
+            "format": "int32"
+          },
+          "quoteExpiryHours": {
+            "maximum": 8760,
+            "minimum": 1,
+            "type": "integer",
+            "format": "int32"
+          },
+          "sessionIdleMinutes": {
+            "maximum": 480,
+            "minimum": 1,
+            "type": "integer",
+            "format": "int32"
+          },
+          "isEnabled": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false
+      },
+      "EquaMeridian.DTOs.User.CreateInternalUserDto": {
+        "required": [
+          "email",
+          "fullName",
+          "role"
+        ],
+        "type": "object",
+        "properties": {
+          "fullName": {
+            "maxLength": 200,
+            "minLength": 1,
+            "type": "string"
+          },
+          "email": {
+            "minLength": 1,
+            "type": "string",
+            "format": "email"
+          },
+          "role": {
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "EquaMeridian.DTOs.User.UpdateAccountStatusDto": {
+        "required": [
+          "newStatus"
+        ],
+        "type": "object",
+        "properties": {
+          "newStatus": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "confirmOverride": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false
+      },
+      "EquaMeridian.DTOs.User.UpdateProfileDto": {
         "required": [
           "email",
           "fullName"
@@ -8586,82 +8846,7 @@
         },
         "additionalProperties": false
       },
-      "UpdateReviewDto": {
-        "required": [
-          "overallRating",
-          "reviewText",
-          "title"
-        ],
-        "type": "object",
-        "properties": {
-          "overallRating": {
-            "maximum": 5,
-            "minimum": 1,
-            "type": "integer",
-            "format": "int32"
-          },
-          "aspectRatings": {
-            "type": "object",
-            "additionalProperties": {
-              "type": "integer",
-              "format": "int32"
-            },
-            "nullable": true
-          },
-          "title": {
-            "maxLength": 150,
-            "minLength": 1,
-            "type": "string"
-          },
-          "reviewText": {
-            "maxLength": 500,
-            "minLength": 1,
-            "type": "string"
-          }
-        },
-        "additionalProperties": false
-      },
-      "UpdateRolePermissionsRequest": {
-        "type": "object",
-        "properties": {
-          "permissionKeys": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "nullable": true
-          }
-        },
-        "additionalProperties": false
-      },
-      "UpdateTimerConfigurationRequest": {
-        "type": "object",
-        "properties": {
-          "intervalMinutes": {
-            "maximum": 1440,
-            "minimum": 1,
-            "type": "integer",
-            "format": "int32"
-          },
-          "quoteExpiryHours": {
-            "maximum": 8760,
-            "minimum": 1,
-            "type": "integer",
-            "format": "int32"
-          },
-          "sessionIdleMinutes": {
-            "maximum": 480,
-            "minimum": 1,
-            "type": "integer",
-            "format": "int32"
-          },
-          "isEnabled": {
-            "type": "boolean"
-          }
-        },
-        "additionalProperties": false
-      },
-      "UpdateUserRoleDto": {
+      "EquaMeridian.DTOs.User.UpdateUserRoleDto": {
         "required": [
           "role"
         ],
@@ -8674,109 +8859,29 @@
         },
         "additionalProperties": false
       },
-      "UpsertCategoryDto": {
+      "EquaMeridian.DTOs.Wishlist.AddWishlistItemDto": {
         "required": [
-          "name"
+          "listingID"
         ],
         "type": "object",
         "properties": {
-          "name": {
-            "maxLength": 100,
-            "minLength": 1,
-            "type": "string"
-          }
-        },
-        "additionalProperties": false
-      },
-      "UpsertDiscountTierDto": {
-        "required": [
-          "discountPercent",
-          "minDays"
-        ],
-        "type": "object",
-        "properties": {
-          "categoryID": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true
-          },
-          "minDays": {
-            "maximum": 2147483647,
-            "minimum": 1,
+          "listingID": {
             "type": "integer",
             "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "PromoValidateRequest": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
           },
-          "maxDays": {
+          "listingId": {
             "type": "integer",
             "format": "int32",
             "nullable": true
-          },
-          "discountPercent": {
-            "maximum": 100,
-            "minimum": 0,
-            "type": "number",
-            "format": "double"
-          }
-        },
-        "additionalProperties": false
-      },
-      "UpsertNodeDto": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string",
-            "nullable": true
-          }
-        },
-        "additionalProperties": false
-      },
-      "VerifyOtpRequest": {
-        "required": [
-          "code",
-          "otpReference"
-        ],
-        "type": "object",
-        "properties": {
-          "otpReference": {
-            "minLength": 1,
-            "type": "string"
-          },
-          "code": {
-            "maxLength": 6,
-            "minLength": 6,
-            "type": "string"
-          },
-          "keepMeSignedIn": {
-            "type": "boolean"
-          }
-        },
-        "additionalProperties": false
-      },
-      "VerifyResetOtpRequest": {
-        "required": [
-          "code",
-          "confirmPassword",
-          "newPassword",
-          "otpReference"
-        ],
-        "type": "object",
-        "properties": {
-          "otpReference": {
-            "minLength": 1,
-            "type": "string"
-          },
-          "code": {
-            "maxLength": 6,
-            "minLength": 6,
-            "type": "string"
-          },
-          "newPassword": {
-            "minLength": 8,
-            "type": "string"
-          },
-          "confirmPassword": {
-            "minLength": 1,
-            "type": "string"
           }
         },
         "additionalProperties": false
