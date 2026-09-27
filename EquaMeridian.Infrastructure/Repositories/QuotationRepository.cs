@@ -592,4 +592,17 @@ public class QuotationRepository : IQuotationRepository
             return "Contractor Pickup";
         return "Supplier Delivery";
     }
+
+    private static SaAddress ResolveAddress(
+        SaAddressDto? nested,
+        string? street, string? suburb, string? city, string? province, string? postal,
+        string? formattedFallback)
+    {
+        if (nested != null && !nested.ToModel().IsEmpty)
+            return nested.ToModel();
+        var structured = SaAddress.FromParts(street, suburb, city, province, postal);
+        if (structured.IsEmpty && !string.IsNullOrWhiteSpace(formattedFallback))
+            structured = SaAddress.Parse(formattedFallback);
+        return structured;
+    }
 }
