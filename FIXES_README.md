@@ -1,9 +1,12 @@
-# EquaMeridian API – Fixed build (compile fix applied)
+# EquaMeridian API – Fixed build
 
-Includes restricted session, SaAddress, validation middleware, booking-summary, and repository wiring.
-
-## Build fix (27 Sep 2026)
-- Added missing `ResolveAddress` helper in `QuotationRepository.cs` (CS0103).
+## Fixes included
+- Restricted session (Disabled Supplier/Contractor)
+- SaAddress structured address model + repository wiring
+- ModelStateMessages + GlobalExceptionMiddleware
+- Admin GetBookingSummary
+- QuotationRepository.ResolveAddress helper (compile fix)
+- PaymentGatewayService restored to match IPaymentGatewayService (compile fix)
 
 ```bash
 dotnet ef database update --project EquaMeridian.Infrastructure --startup-project EquaMeridian
