@@ -22,6 +22,17 @@ namespace EquaMeridian.DTOs.Cart
 
         [StringLength(300)]
         public string? DeliveryAddress { get; set; }
+        [StringLength(120, ErrorMessage = "The street address cannot be longer than 120 characters.")]
+        public string? AddressStreet { get; set; }
+        [StringLength(80, ErrorMessage = "The suburb cannot be longer than 80 characters.")]
+        public string? AddressSuburb { get; set; }
+        [StringLength(80, ErrorMessage = "The city cannot be longer than 80 characters.")]
+        public string? AddressCity { get; set; }
+        [StringLength(40, ErrorMessage = "The province cannot be longer than 40 characters.")]
+        public string? AddressProvince { get; set; }
+        [RegularExpression(@"^\d{4}$", ErrorMessage = "The postal code must be 4 digits.")]
+        public string? AddressPostalCode { get; set; }
+        public SaAddressDto? Address { get; set; }
     }
 
     public class UpdateCartItemDto
@@ -40,6 +51,17 @@ namespace EquaMeridian.DTOs.Cart
 
         [StringLength(300)]
         public string? DeliveryAddress { get; set; }
+        [StringLength(120, ErrorMessage = "The street address cannot be longer than 120 characters.")]
+        public string? AddressStreet { get; set; }
+        [StringLength(80, ErrorMessage = "The suburb cannot be longer than 80 characters.")]
+        public string? AddressSuburb { get; set; }
+        [StringLength(80, ErrorMessage = "The city cannot be longer than 80 characters.")]
+        public string? AddressCity { get; set; }
+        [StringLength(40, ErrorMessage = "The province cannot be longer than 40 characters.")]
+        public string? AddressProvince { get; set; }
+        [RegularExpression(@"^\d{4}$", ErrorMessage = "The postal code must be 4 digits.")]
+        public string? AddressPostalCode { get; set; }
+        public SaAddressDto? Address { get; set; }
     }
 
     public class CartItemDto
@@ -54,6 +76,11 @@ namespace EquaMeridian.DTOs.Cart
         public DateTime RentalEndDate { get; set; }
         public int RentalDurationDays { get; set; }
         public string DeliveryAddress { get; set; } = string.Empty;
+        public string? AddressStreet { get; set; }
+        public string? AddressSuburb { get; set; }
+        public string? AddressCity { get; set; }
+        public string? AddressProvince { get; set; }
+        public string? AddressPostalCode { get; set; }
         public string FulfillmentMethod { get; set; } = "Supplier Delivery";
         public decimal DailyRateZAR { get; set; }
         public decimal RentalSubtotal { get; set; }

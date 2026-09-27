@@ -102,6 +102,29 @@ public class UsersController : ControllerBase
         return Ok(new { userId, newStatus = dto.NewStatus });
     }
 
+    [HttpGet("{userId}/booking-summary")]
+    public async Task<IActionResult> GetBookingSummary(int userId)
+    {
+        var user = await _repo.GetByIdAsync(userId);
+        if (user == null) return NotFound();
+
+        var activeCount = await _db.Bookings.CountAsync(b =>
+            (b.SupplierID == userId || b.ContractorID == userId)
+            && b.Status != "Completed"
+            && b.Status != "Cancelled");
+
+        var totalCount = await _db.Bookings.CountAsync(b =>
+            b.SupplierID == userId || b.ContractorID == userId);
+
+        return Ok(new
+        {
+            userId,
+            activeBookings = activeCount,
+            totalBookings = totalCount,
+            canDisable = activeCount == 0
+        });
+    }
+
     [HttpPost]
     public async Task<IActionResult> CreateInternalUser([FromBody] CreateInternalUserDto dto)
     {

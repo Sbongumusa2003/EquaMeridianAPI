@@ -139,6 +139,11 @@ public class BookingRepository : IBookingRepository
             RentalStartDate = b.RentalStartDate,
             RentalEndDate = b.RentalEndDate,
             DeliveryAddress = b.DeliveryAddress,
+            AddressStreet = b.AddressStreet,
+            AddressSuburb = b.AddressSuburb,
+            AddressCity = b.AddressCity,
+            AddressProvince = b.AddressProvince,
+            AddressPostalCode = b.AddressPostalCode,
             Status = ComputeDisplayStatus(b),
             CanViewAddress = true
         }).ToList();
@@ -177,7 +182,7 @@ public class BookingRepository : IBookingRepository
         return MapToDetailDto(booking, hasOpenDispute);
     }
 
-    public async Task<bool> UpdateDeliveryAddressAsync(int bookingId, int contractorId, string newAddress)
+    public async Task<bool> UpdateDeliveryAddressAsync(int bookingId, int contractorId, UpdateDeliveryAddressDto dto)
     {
         var booking = await _db.Bookings
             .Include(b => b.Delivery)
@@ -186,7 +191,16 @@ public class BookingRepository : IBookingRepository
         if (booking == null || booking.Status == "Cancelled" || booking.Delivery?.Status == "Delivered")
             return false;
 
-        booking.DeliveryAddress = newAddress;
+        var structured = ResolveAddress(dto.Address, dto.AddressStreet, dto.AddressSuburb, dto.AddressCity, dto.AddressProvince, dto.AddressPostalCode, dto.DeliveryAddress);
+        if (structured.IsEmpty)
+            return false;
+
+        booking.DeliveryAddress = structured.ToFormatted();
+        booking.AddressStreet = structured.Street;
+        booking.AddressSuburb = structured.Suburb;
+        booking.AddressCity = structured.City;
+        booking.AddressProvince = structured.Province;
+        booking.AddressPostalCode = structured.PostalCode;
         await _db.SaveChangesAsync();
         return true;
     }
@@ -340,6 +354,7 @@ public class BookingRepository : IBookingRepository
 
         var earlyReturnFeeApplies = dto.PreferredPickupDate.Date < booking.RentalEndDate.Date;
 
+        var retAddr = ResolveAddress(dto.Address, dto.AddressStreet, dto.AddressSuburb, dto.AddressCity, dto.AddressProvince, dto.AddressPostalCode, dto.PickupLocation);
         var returnRequest = new ReturnRequest
         {
             BookingID = booking.BookingID,
@@ -347,7 +362,12 @@ public class BookingRepository : IBookingRepository
             Reason = dto.ReturnReason,
             PreferredPickupDate = dto.PreferredPickupDate,
             TimeWindow = dto.PickupTimeWindow,
-            PickupLocation = dto.PickupLocation,
+            PickupLocation = retAddr.IsEmpty ? (dto.PickupLocation ?? string.Empty) : retAddr.ToFormatted(),
+            AddressStreet = retAddr.Street,
+            AddressSuburb = retAddr.Suburb,
+            AddressCity = retAddr.City,
+            AddressProvince = retAddr.Province,
+            AddressPostalCode = retAddr.PostalCode,
             Notes = dto.Notes,
             EarlyReturnFeeApplies = earlyReturnFeeApplies,
             RequestedAt = AppTime.Now,
@@ -693,6 +713,11 @@ public class BookingRepository : IBookingRepository
             RentalStartDate = b.RentalStartDate,
             RentalEndDate = b.RentalEndDate,
             DeliveryAddress = b.DeliveryAddress,
+            AddressStreet = b.AddressStreet,
+            AddressSuburb = b.AddressSuburb,
+            AddressCity = b.AddressCity,
+            AddressProvince = b.AddressProvince,
+            AddressPostalCode = b.AddressPostalCode,
             Status = displayStatus,
             CanViewAddress = b.Status == "Confirmed" || b.Status == "Ready For Pickup",
             // Pickup path: only after Ready For Pickup. Supplier delivery: from Confirmed (Awaiting Delivery) or Ready.
@@ -885,6 +910,11 @@ public class BookingRepository : IBookingRepository
         RentalStartDate = b.RentalStartDate,
         RentalEndDate = b.RentalEndDate,
         DeliveryAddress = b.DeliveryAddress,
+            AddressStreet = b.AddressStreet,
+            AddressSuburb = b.AddressSuburb,
+            AddressCity = b.AddressCity,
+            AddressProvince = b.AddressProvince,
+            AddressPostalCode = b.AddressPostalCode,
         BookingStatus = b.Status,
         DeliveryStatus = b.Status == "Cancelled"
             ? "Cancelled"
@@ -993,5 +1023,18 @@ public class BookingRepository : IBookingRepository
             return "Delivery";
 
         return "—";
+    }
+
+    private static SaAddress ResolveAddress(
+        SaAddressDto? nested,
+        string? street, string? suburb, string? city, string? province, string? postal,
+        string? formattedFallback)
+    {
+        if (nested != null && !nested.ToModel().IsEmpty)
+            return nested.ToModel();
+        var structured = SaAddress.FromParts(street, suburb, city, province, postal);
+        if (structured.IsEmpty && !string.IsNullOrWhiteSpace(formattedFallback))
+            structured = SaAddress.Parse(formattedFallback);
+        return structured;
     }
 }

@@ -64,7 +64,7 @@ public class BookingsController : ControllerBase
         if (!ModelState.IsValid) return BadRequest(ModelState);
 
         var ip = HttpContext.Connection.RemoteIpAddress?.ToString();
-        var updated = await _repo.UpdateDeliveryAddressAsync(bookingId, UserId, dto.DeliveryAddress);
+        var updated = await _repo.UpdateDeliveryAddressAsync(bookingId, UserId, dto);
         if (!updated) return BadRequest(new { message = "Delivery address could not be updated for this booking." });
 
         await _audit.LogAsync(UserId, "DELIVERY_ADDRESS_UPDATED",

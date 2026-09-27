@@ -37,6 +37,19 @@ namespace EquaMeridian.DTOs.Listings
         [MaxLength(200)]
         public string? Location { get; set; }
 
+        [StringLength(120, ErrorMessage = "The street address cannot be longer than 120 characters.")]
+        public string? AddressStreet { get; set; }
+        [StringLength(80, ErrorMessage = "The suburb cannot be longer than 80 characters.")]
+        public string? AddressSuburb { get; set; }
+        [StringLength(80, ErrorMessage = "The city cannot be longer than 80 characters.")]
+        public string? AddressCity { get; set; }
+        [StringLength(40, ErrorMessage = "The province cannot be longer than 40 characters.")]
+        public string? AddressProvince { get; set; }
+        [RegularExpression(@"^\d{4}$", ErrorMessage = "The postal code must be 4 digits.")]
+        public string? AddressPostalCode { get; set; }
+
+        public SaAddressDto? Address { get; set; }
+
         [Required]
         [Range(0.01, 10_000_000, ErrorMessage = "Daily rate must be greater than zero and at most 10,000,000.")]
         public decimal DailyRateZAR { get; set; }

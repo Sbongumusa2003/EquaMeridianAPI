@@ -11,6 +11,12 @@ public class Quotation
     public DateTime RentalEndDate { get; set; }
     public int Quantity { get; set; } = 1;
     public string DeliveryAddress { get; set; } = string.Empty;
+
+    public string? AddressStreet { get; set; }
+    public string? AddressSuburb { get; set; }
+    public string? AddressCity { get; set; }
+    public string? AddressProvince { get; set; }
+    public string? AddressPostalCode { get; set; }
     public string? SpecialRequirements { get; set; }
     public string PreferredContact { get; set; } = "Email";
     public decimal EstimatedTotal { get; set; }

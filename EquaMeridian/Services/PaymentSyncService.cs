@@ -51,17 +51,10 @@ public class PaymentSyncService : IPaymentSyncService
         return sync.Status;
     }
 
-    /// <summary>
-    /// Fires once a payment settles as "Paid": logs a tracking-timeline entry on the related Booking
-    /// and notifies the Supplier (in-app + email) so they know to arrange delivery or hand over for
-    /// pickup. Moved here from PaymentsController so every sync path (webhook, single-booking status
-    /// check, invoice detail, invoice list, payment history) notifies the Supplier exactly once and
-    /// the same way, instead of each read path needing its own copy of this logic.
-    /// </summary>
     public async Task NotifySupplierOfPaymentAsync(Invoice invoice)
     {
         int? bookingId = invoice.Quotation?.BookingID;
-        if (!bookingId.HasValue)
+        if (!bookingId.HasValue && invoice.QuotationID > 0)
         {
             bookingId = await _db.Quotations.AsNoTracking()
                 .Where(q => q.QuotationID == invoice.QuotationID)
@@ -69,20 +62,53 @@ public class PaymentSyncService : IPaymentSyncService
                 .FirstOrDefaultAsync();
         }
 
-        var booking = bookingId.HasValue
-            ? await _db.Bookings
+        Booking? booking = null;
+        if (bookingId.HasValue && bookingId.Value > 0)
+        {
+            booking = await _db.Bookings
                 .Include(b => b.Supplier)
                 .Include(b => b.Contractor)
                 .Include(b => b.Listing)
-                .FirstOrDefaultAsync(b => b.BookingID == bookingId.Value)
-            : null;
+                .Include(b => b.Delivery)
+                .FirstOrDefaultAsync(b => b.BookingID == bookingId.Value);
+        }
+
+        if (booking == null)
+        {
+            booking = await _db.Bookings
+                .Include(b => b.Supplier)
+                .Include(b => b.Contractor)
+                .Include(b => b.Listing)
+                .Include(b => b.Delivery)
+                .Where(b => b.ContractorID == invoice.ContractorID
+                            && b.ListingID == invoice.ListingID
+                            && b.Status != "Cancelled"
+                            && (b.Status == "AwaitingPayment" || b.Status == "AwaitingSignature" || b.Status == "Confirmed"))
+                .OrderByDescending(b => b.CreatedDate)
+                .FirstOrDefaultAsync();
+        }
 
         if (booking == null) return;
         if (booking.Status == "Cancelled") return;
 
-        if (booking.Status == "AwaitingPayment")
+        if (booking.Status == "AwaitingPayment" || booking.Status == "AwaitingSignature")
         {
-            booking.Status = "Confirmed";
+            if (booking.Status == "AwaitingPayment" || invoice.PaymentStatus.Equals("Paid", StringComparison.OrdinalIgnoreCase))
+                booking.Status = "Confirmed";
+        }
+
+        if (booking.Delivery == null)
+        {
+            booking.Delivery = new Delivery
+            {
+                BookingID = booking.BookingID,
+                Status = "Pending",
+                Method = string.IsNullOrWhiteSpace(booking.FulfillmentMethod)
+                    ? DeliveryMethods.SupplierDelivery
+                    : booking.FulfillmentMethod,
+                CreatedDate = AppTime.Now
+            };
+            _db.Set<Delivery>().Add(booking.Delivery);
         }
 
         _db.BookingStatusHistories.Add(new BookingStatusHistory
@@ -105,7 +131,6 @@ public class PaymentSyncService : IPaymentSyncService
         await _email.SendPaymentReceivedEmailAsync(
             booking.Supplier.Email, booking.Supplier.FullName, booking.BookingID, invoice.InvoiceNumber, invoice.SupplierPayableAmount);
 
-        // Contractor confirmation — payment settled; machinery can be arranged.
         if (booking.Contractor != null && !string.IsNullOrWhiteSpace(booking.Contractor.Email))
         {
             var title = booking.Listing?.ListingTitle ?? "your booking";

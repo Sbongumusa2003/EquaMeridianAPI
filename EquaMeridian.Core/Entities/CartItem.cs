@@ -9,6 +9,12 @@ public class CartItem
     public DateTime RentalStartDate { get; set; }
     public DateTime RentalEndDate { get; set; }
     public string DeliveryAddress { get; set; } = string.Empty;
+
+    public string? AddressStreet { get; set; }
+    public string? AddressSuburb { get; set; }
+    public string? AddressCity { get; set; }
+    public string? AddressProvince { get; set; }
+    public string? AddressPostalCode { get; set; }
     public DateTime AddedDate { get; set; } = AppTime.Now;
     /// <summary>When this soft reservation expires the units return to the listing.</summary>
     public DateTime ReservedUntil { get; set; } = AppTime.Now.AddMinutes(30);
