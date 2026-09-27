@@ -174,7 +174,7 @@ public class BookingsController : ControllerBase
 
         await _email.SendReturnRequestedEmailAsync(
             result.SupplierEmail, result.SupplierName, bookingId, result.Machinery,
-            dto.PreferredPickupDate, dto.PickupTimeWindow, dto.PickupLocation, dto.ReturnReason);
+            dto.PreferredPickupDate, dto.PickupTimeWindow, dto.PickupLocation ?? string.Empty, dto.ReturnReason);
 
         return Ok(new
         {

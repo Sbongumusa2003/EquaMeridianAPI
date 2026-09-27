@@ -94,8 +94,6 @@ public class GlobalExceptionMiddleware
         Microsoft.EntityFrameworkCore.DbUpdateConcurrencyException =>
             (HttpStatusCode.Conflict, "This record was changed by someone else. Please refresh and try again."),
         Microsoft.EntityFrameworkCore.DbUpdateException db => MapDatabase(db),
-        Microsoft.Data.SqlClient.SqlException =>
-            (HttpStatusCode.ServiceUnavailable, "We couldn't reach the database. Please try again in a moment."),
 
         // A partner service (PayFast, e-mail, SMS, shipping) is down or slow.
         HttpRequestException =>
@@ -108,7 +106,14 @@ public class GlobalExceptionMiddleware
 
     private static (HttpStatusCode StatusCode, string Message) MapDatabase(Microsoft.EntityFrameworkCore.DbUpdateException ex)
     {
-        var number = (ex.InnerException as Microsoft.Data.SqlClient.SqlException)?.Number;
+        int? number = null;
+        var inner = ex.InnerException;
+        if (inner != null)
+        {
+            var prop = inner.GetType().GetProperty("Number");
+            if (prop?.GetValue(inner) is int n)
+                number = n;
+        }
         return number switch
         {
             2601 or 2627 => (HttpStatusCode.Conflict, "That already exists. Please use a different value."),
