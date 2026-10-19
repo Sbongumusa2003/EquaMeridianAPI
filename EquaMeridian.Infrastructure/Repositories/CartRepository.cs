@@ -51,9 +51,14 @@ public class CartRepository : ICartRepository
                     codePromo = codeResolution.DiscountPercent;
             }
             var promoPercent = Math.Max(listingPromo, codePromo);
+            var chargeDelivery = !isPickup && item.Listing.DeliveryAvailable;
+            var flatFee = chargeDelivery && item.Listing.DeliveryFeeZAR is > 0
+                ? item.Listing.DeliveryFeeZAR
+                : null;
             var pricing = await _pricingEngine.CalculateAsync(
                 item.Listing.DailyRateZAR, days, item.Quantity, distanceKm, item.Listing.CategoryID, promoPercent,
-                chargeDelivery: !isPickup);
+                chargeDelivery: chargeDelivery,
+                listingFlatDeliveryFee: flatFee);
 
             var image = await _db.ListingImages
                 .Where(i => i.ListingID == item.ListingID)
@@ -95,6 +100,9 @@ public class CartRepository : ICartRepository
 
             itemDtos.Add((dto, item.Listing.SupplierID, item.Listing.Supplier.CompanyName ?? item.Listing.Supplier.FullName));
         }
+
+        // One delivery charge per unique (supplier, destination) — not per cart line.
+        ConsolidateCartDeliveryFees(itemDtos);
 
         var groups = itemDtos
             .GroupBy(x => new { x.SupplierId, x.SupplierName })
@@ -170,6 +178,8 @@ public class CartRepository : ICartRepository
         var address = (dto.DeliveryAddress ?? string.Empty).Trim();
         if (isPickup)
         {
+            if (!listing.PickupAvailable)
+                return (false, "This listing does not offer contractor pickup. Please choose Supplier Delivery.");
             if (string.IsNullOrWhiteSpace(address))
                 address = string.IsNullOrWhiteSpace(listing.Location)
                     ? "Supplier yard (pickup)"
@@ -177,9 +187,12 @@ public class CartRepository : ICartRepository
             if (!address.Contains("pickup", StringComparison.OrdinalIgnoreCase))
                 address = "Pickup: " + address;
         }
-        else if (string.IsNullOrWhiteSpace(address))
+        else
         {
-            return (false, "Please enter a delivery address, or choose Contractor Pickup.");
+            if (!listing.DeliveryAvailable)
+                return (false, "This listing does not offer supplier delivery. Please choose Contractor Pickup.");
+            if (string.IsNullOrWhiteSpace(address))
+                return (false, "Please enter a delivery address, or choose Contractor Pickup.");
         }
 
         var existing = await _db.CartItems.FirstOrDefaultAsync(c =>
@@ -194,8 +207,7 @@ public class CartRepository : ICartRepository
             existing.Quantity += dto.Quantity;
             existing.DeliveryAddress = address;
             existing.ReservedUntil = AppTime.Now.Add(ttl);
-            listing.UnitsAvailable -= dto.Quantity;
-            listing.UnitsReserved += dto.Quantity;
+            ListingInventory.SoftHold(listing, dto.Quantity);
         }
         else
         {
@@ -210,8 +222,7 @@ public class CartRepository : ICartRepository
                 AddedDate = AppTime.Now,
                 ReservedUntil = AppTime.Now.Add(ttl)
             });
-            listing.UnitsAvailable -= dto.Quantity;
-            listing.UnitsReserved += dto.Quantity;
+            ListingInventory.SoftHold(listing, dto.Quantity);
         }
 
         await _db.SaveChangesAsync();
@@ -243,6 +254,8 @@ public class CartRepository : ICartRepository
         var address = (dto.DeliveryAddress ?? item.DeliveryAddress ?? string.Empty).Trim();
         if (isPickup)
         {
+            if (!item.Listing.PickupAvailable)
+                return (false, "This listing does not offer contractor pickup. Please choose Supplier Delivery.");
             if (string.IsNullOrWhiteSpace(address))
                 address = string.IsNullOrWhiteSpace(item.Listing.Location)
                     ? "Supplier yard (pickup)"
@@ -250,22 +263,19 @@ public class CartRepository : ICartRepository
             if (!address.Contains("pickup", StringComparison.OrdinalIgnoreCase))
                 address = "Pickup: " + address;
         }
-        else if (string.IsNullOrWhiteSpace(address))
+        else
         {
-            return (false, "Please enter a delivery address, or choose Contractor Pickup.");
+            if (!item.Listing.DeliveryAvailable)
+                return (false, "This listing does not offer supplier delivery. Please choose Contractor Pickup.");
+            if (string.IsNullOrWhiteSpace(address))
+                return (false, "Please enter a delivery address, or choose Contractor Pickup.");
         }
 
         var delta = newQty - oldQty;
         if (delta > 0)
-        {
-            item.Listing.UnitsAvailable -= delta;
-            item.Listing.UnitsReserved += delta;
-        }
+            ListingInventory.SoftHold(item.Listing, delta);
         else if (delta < 0)
-        {
-            item.Listing.UnitsAvailable += -delta;
-            item.Listing.UnitsReserved = Math.Max(0, item.Listing.UnitsReserved + delta);
-        }
+            ListingInventory.SoftRelease(item.Listing, -delta);
 
         item.RentalStartDate = dto.StartDate.Date;
         item.RentalEndDate = dto.EndDate.Date;
@@ -283,10 +293,7 @@ public class CartRepository : ICartRepository
         if (item == null) return false;
 
         if (item.Listing != null)
-        {
-            item.Listing.UnitsReserved = Math.Max(0, item.Listing.UnitsReserved - item.Quantity);
-            item.Listing.UnitsAvailable += item.Quantity;
-        }
+            ListingInventory.SoftRelease(item.Listing, item.Quantity);
         _db.CartItems.Remove(item);
         await _db.SaveChangesAsync();
         return true;
@@ -331,13 +338,15 @@ public class CartRepository : ICartRepository
         {
             await using var transaction = await _db.Database.BeginTransactionAsync();
 
+            // Pass 1: price every line (before consolidating delivery fees).
+            var priced = new List<CheckoutPricedLine>();
             foreach (var item in items)
             {
                 var days = Math.Max(1, (item.RentalEndDate.Date - item.RentalStartDate.Date).Days);
                 var isPickup = IsContractorPickup(item.DeliveryAddress, item.Listing.Location);
-            var distanceKm = isPickup
-                ? 0m
-                : await _distanceService.CalculateDistanceKmAsync(item.Listing.Location, item.DeliveryAddress);
+                var distanceKm = isPickup
+                    ? 0m
+                    : await _distanceService.CalculateDistanceKmAsync(item.Listing.Location, item.DeliveryAddress);
                 var listingPromo = await _campaigns.GetActivePromoDiscountPercentAsync(item.ListingID);
                 var codePromo = 0m;
                 if (codeResolution is { Valid: true }
@@ -345,10 +354,34 @@ public class CartRepository : ICartRepository
                         || codeResolution.FeaturedListingId.Value == item.ListingID))
                     codePromo = codeResolution.DiscountPercent;
                 var promoPercent = Math.Max(listingPromo, codePromo);
+                var chargeDelivery = !isPickup && item.Listing.DeliveryAvailable;
+                var flatFee = chargeDelivery && item.Listing.DeliveryFeeZAR is > 0
+                    ? item.Listing.DeliveryFeeZAR
+                    : null;
                 var pricing = await _pricingEngine.CalculateAsync(
                     item.Listing.DailyRateZAR, days, item.Quantity, distanceKm, item.Listing.CategoryID, promoPercent,
-                    chargeDelivery: !isPickup);
+                    chargeDelivery: chargeDelivery,
+                    listingFlatDeliveryFee: flatFee);
 
+                priced.Add(new CheckoutPricedLine
+                {
+                    Item = item,
+                    SupplierId = item.Listing.SupplierID,
+                    DeliveryAddress = item.DeliveryAddress,
+                    IsPickup = isPickup,
+                    DistanceKm = distanceKm,
+                    Pricing = pricing
+                });
+            }
+
+            // One delivery charge per unique (supplier, destination).
+            ConsolidateCheckoutDeliveryFees(priced);
+
+            // Pass 2: create quotation / booking / invoice with consolidated fees.
+            foreach (var line in priced)
+            {
+                var item = line.Item;
+                var pricing = line.Pricing;
                 var now = AppTime.Now;
                 var quotation = new Quotation
                 {
@@ -361,7 +394,7 @@ public class CartRepository : ICartRepository
                     DeliveryAddress = item.DeliveryAddress,
                     PreferredContact = "Email",
                     DailyRateZAR = item.Listing.DailyRateZAR,
-                    DeliveryDistanceKm = distanceKm,
+                    DeliveryDistanceKm = line.DistanceKm,
                     RentalSubtotal = pricing.RentalSubtotal,
                     DiscountPercent = pricing.DiscountPercent,
                     DiscountAmount = pricing.DiscountAmount,
@@ -378,35 +411,16 @@ public class CartRepository : ICartRepository
                 _db.Quotations.Add(quotation);
                 await _db.SaveChangesAsync();
 
-                // Re-read inside the transaction so two simultaneous checkouts cannot
-                // oversell the last unit (the pre-check above used a snapshot).
                 await _db.Entry(item.Listing).ReloadAsync();
                 if (item.Listing.AvailabilityStatus != "Active")
                     throw new InvalidOperationException($"'{item.Listing.ListingTitle}' is no longer available.");
 
-                // Cart-add already reduced UnitsAvailable and increased UnitsReserved for this
-                // line's Quantity. Free stock for THIS contractor = market free + own hold.
                 var freeForContractor = item.Listing.UnitsAvailable + item.Quantity;
                 if (freeForContractor < item.Quantity)
                     throw new InvalidOperationException(
                         $"Only {freeForContractor} unit(s) of '{item.Listing.ListingTitle}' remain.");
 
-                // Convert soft cart hold into a confirmed booking:
-                // - UnitsAvailable stays reduced (units are now committed to the booking)
-                // - UnitsReserved drops because the hold is no longer a cart reservation
-                // If for any reason no hold was recorded, claim units now.
-                if (item.Listing.UnitsReserved >= item.Quantity)
-                {
-                    item.Listing.UnitsReserved -= item.Quantity;
-                }
-                else
-                {
-                    // Fallback: claim from free stock (should be rare)
-                    if (item.Listing.UnitsAvailable < item.Quantity)
-                        throw new InvalidOperationException(
-                            $"Only {item.Listing.UnitsAvailable} unit(s) of '{item.Listing.ListingTitle}' remain.");
-                    item.Listing.UnitsAvailable -= item.Quantity;
-                }
+                ListingInventory.ConfirmFromHold(item.Listing, item.Quantity);
 
                 var booking = new Booking
                 {
@@ -474,6 +488,93 @@ public class CartRepository : ICartRepository
             return true;
         var loc = (listingLocation ?? string.Empty).Trim();
         return loc.Length > 0 && a.Equals(loc, StringComparison.OrdinalIgnoreCase);
+    }
+
+    /// <summary>
+    /// Normalise an address for consolidation keys so minor spacing/case differences
+    /// still count as the same destination.
+    /// </summary>
+    private static string NormalizeAddressKey(string? address)
+    {
+        if (string.IsNullOrWhiteSpace(address)) return string.Empty;
+        var parts = address.Trim().ToLowerInvariant()
+            .Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries);
+        return string.Join(' ', parts);
+    }
+
+    /// <summary>
+    /// Keep the highest delivery fee on one line per (supplier, destination);
+    /// zero the fee on sibling lines and subtract it from their totals.
+    /// VAT is unchanged (it never included delivery).
+    /// </summary>
+    private static void ConsolidateCartDeliveryFees(
+        List<(CartItemDto Dto, int SupplierId, string SupplierName)> lines)
+    {
+        var groups = lines
+            .Where(x => x.Dto.DeliveryFee > 0
+                        && !string.Equals(x.Dto.FulfillmentMethod, "Contractor Pickup", StringComparison.OrdinalIgnoreCase))
+            .GroupBy(x => new
+            {
+                x.SupplierId,
+                Address = NormalizeAddressKey(x.Dto.DeliveryAddress)
+            });
+
+        foreach (var g in groups)
+        {
+            var ordered = g
+                .OrderByDescending(x => x.Dto.DeliveryFee)
+                .ThenBy(x => x.Dto.CartItemID)
+                .ToList();
+
+            for (var i = 1; i < ordered.Count; i++)
+            {
+                var dto = ordered[i].Dto;
+                var removed = dto.DeliveryFee;
+                if (removed <= 0) continue;
+                dto.DeliveryFee = 0;
+                dto.PriceExclVat = Math.Round(Math.Max(0, dto.PriceExclVat - removed), 2);
+                dto.PriceInclVat = Math.Round(Math.Max(0, dto.PriceInclVat - removed), 2);
+            }
+        }
+    }
+
+    private static void ConsolidateCheckoutDeliveryFees(List<CheckoutPricedLine> lines)
+    {
+        var groups = lines
+            .Where(x => !x.IsPickup && x.Pricing.DeliveryFee > 0)
+            .GroupBy(x => new
+            {
+                x.SupplierId,
+                Address = NormalizeAddressKey(x.DeliveryAddress)
+            });
+
+        foreach (var g in groups)
+        {
+            var ordered = g
+                .OrderByDescending(x => x.Pricing.DeliveryFee)
+                .ThenBy(x => x.Item.CartItemID)
+                .ToList();
+
+            for (var i = 1; i < ordered.Count; i++)
+            {
+                var pricing = ordered[i].Pricing;
+                var removed = pricing.DeliveryFee;
+                if (removed <= 0) continue;
+                pricing.DeliveryFee = 0;
+                pricing.PriceExclVat = Math.Round(Math.Max(0, pricing.PriceExclVat - removed), 2);
+                pricing.PriceInclVat = Math.Round(Math.Max(0, pricing.PriceInclVat - removed), 2);
+            }
+        }
+    }
+
+    private sealed class CheckoutPricedLine
+    {
+        public CartItem Item { get; set; } = null!;
+        public int SupplierId { get; set; }
+        public string DeliveryAddress { get; set; } = string.Empty;
+        public bool IsPickup { get; set; }
+        public decimal DistanceKm { get; set; }
+        public PricingResult Pricing { get; set; } = null!;
     }
 
 }

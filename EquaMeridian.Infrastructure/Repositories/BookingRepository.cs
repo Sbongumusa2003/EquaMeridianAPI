@@ -15,6 +15,12 @@ public class BookingRepository : IBookingRepository
         "Good", "Minor wear", "Damaged"
     };
 
+    /// <summary>
+    /// Preferred return/pickup date may be at most this many calendar days after today.
+    /// Stops contractors scheduling a far-future "early return" while continuing to use the machine.
+    /// </summary>
+    private const int MaxEarlyReturnLeadDays = 3;
+
     private readonly AppDbContext _db;
     private readonly IConfiguration _config;
     private readonly IPaymentSyncService _paymentSync;
@@ -335,17 +341,49 @@ public class BookingRepository : IBookingRepository
         if (!ValidReturnReasons.Contains(dto.ReturnReason))
             return new ReturnRequestResult { Success = false, Error = "Please select a valid return reason." };
 
-        if (dto.PreferredPickupDate.Date < AppTime.Now.Date)
-            return new ReturnRequestResult { Success = false, Error = "Pickup date is required and cannot be in the past." };
+        var today = AppTime.Now.Date;
+        var preferred = dto.PreferredPickupDate.Date;
+        var rentalEnd = booking.RentalEndDate.Date;
+        var maxLeadDate = today.AddDays(MaxEarlyReturnLeadDays);
 
-        var earlyReturnFeeApplies = dto.PreferredPickupDate.Date < booking.RentalEndDate.Date;
+        if (preferred < today)
+            return new ReturnRequestResult
+            {
+                Success = false,
+                Error = "Preferred pickup date cannot be in the past."
+            };
+
+        // Must be within a short window so the contractor cannot book a far-future return
+        // while continuing to use the equipment unpaid / without accountability.
+        if (preferred > maxLeadDate)
+            return new ReturnRequestResult
+            {
+                Success = false,
+                Error = $"Preferred pickup date must be within {MaxEarlyReturnLeadDays} days of today " +
+                        $"(no later than {maxLeadDate:dd MMM yyyy}). " +
+                        "Rental charges continue until the supplier confirms the machine has been returned. " +
+                        "You cannot schedule a distant return date to avoid early-return terms."
+            };
+
+        if (preferred > rentalEnd)
+            return new ReturnRequestResult
+            {
+                Success = false,
+                Error = $"Preferred pickup date cannot be after the rental end date ({rentalEnd:dd MMM yyyy})."
+            };
+
+        // Early return = any return before the contracted end date.
+        // Unused days are not refunded automatically; the flag signals that the full period was paid
+        // and the hire ends only when the supplier confirms physical return / off-hire.
+        var earlyReturnFeeApplies = preferred < rentalEnd
+                                    || dto.ReturnReason.Equals("Early return", StringComparison.OrdinalIgnoreCase);
 
         var returnRequest = new ReturnRequest
         {
             BookingID = booking.BookingID,
             ContractorID = contractorId,
             Reason = dto.ReturnReason,
-            PreferredPickupDate = dto.PreferredPickupDate,
+            PreferredPickupDate = preferred,
             TimeWindow = dto.PickupTimeWindow,
             PickupLocation = dto.PickupLocation,
             Notes = dto.Notes,
@@ -357,13 +395,17 @@ public class BookingRepository : IBookingRepository
         _db.ReturnRequests.Add(returnRequest);
         booking.Status = "Return Requested";
 
+        var historyNotes = earlyReturnFeeApplies
+            ? $"{dto.ReturnReason} · Early return — charges apply for the full hire period until off-hire is confirmed"
+            : dto.ReturnReason;
+
         _db.BookingStatusHistories.Add(new BookingStatusHistory
         {
             BookingID = booking.BookingID,
             Stage = "Return Requested",
             ChangedByUserID = contractorId,
             ChangedByRole = "Contractor",
-            Notes = dto.ReturnReason,
+            Notes = historyNotes,
             CreatedDate = AppTime.Now
         });
 
@@ -374,6 +416,10 @@ public class BookingRepository : IBookingRepository
             Success = true,
             ReturnRequestID = returnRequest.ReturnRequestID,
             EarlyReturnFeeApplies = earlyReturnFeeApplies,
+            Message = earlyReturnFeeApplies
+                ? "Early return recorded. You remain responsible for the hire until the supplier confirms " +
+                  "the machine has been collected/returned. Unused days are not automatically refunded."
+                : "Return request submitted. The supplier will arrange collection.",
             SupplierID = booking.SupplierID,
             SupplierEmail = booking.Supplier.Email,
             SupplierName = booking.Supplier.FullName,
@@ -896,20 +942,15 @@ public class BookingRepository : IBookingRepository
             && ComputeDisplayStatus(b) is "In Progress" or "Return Requested" or "Ready For Return Pickup" or "Completed"
     };
 
+    /// <summary>
+    /// Release units from a confirmed hire (cancel or completed return).
+    /// Confirmed bookings never hold UnitsReserved — that counter is cart soft-holds only —
+    /// so we only restore Available or move to maintenance.
+    /// </summary>
     private static void ReturnHireUnits(Listing? listing, int qty, bool toAvailable)
     {
         if (listing == null || qty <= 0) return;
-        listing.UnitsReserved = Math.Max(0, listing.UnitsReserved - qty);
-        if (toAvailable)
-        {
-            listing.UnitsAvailable = Math.Max(0, listing.UnitsAvailable + qty);
-            if (listing.AvailabilityStatus != "Suspended" && listing.AvailabilityStatus != "Pending Review")
-                listing.AvailabilityStatus = "Active";
-        }
-        else
-        {
-            listing.UnitsUnderMaintenance += qty;
-        }
+        ListingInventory.CompleteHire(listing, qty, passedInspection: toAvailable);
     }
 
 

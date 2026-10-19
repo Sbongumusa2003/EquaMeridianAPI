@@ -108,6 +108,8 @@ namespace EquaMeridian.DTOs.Bookings
         public string? Error { get; set; }
         public int? ReturnRequestID { get; set; }
         public bool EarlyReturnFeeApplies { get; set; }
+        /// <summary>Contractor-facing explanation (e.g. charges continue until off-hire confirmed).</summary>
+        public string? Message { get; set; }
         public int SupplierID { get; set; }
         public string SupplierEmail { get; set; } = string.Empty;
         public string SupplierName { get; set; } = string.Empty;

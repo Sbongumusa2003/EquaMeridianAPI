@@ -1,5 +1,9 @@
 public interface IPricingEngine
 {
+    /// <param name="listingFlatDeliveryFee">
+    /// When set (and chargeDelivery is true), used as the line delivery fee instead of the
+    /// platform distance formula. Honour Listing.DeliveryFeeZAR when the supplier opted in.
+    /// </param>
     Task<PricingResult> CalculateAsync(
         decimal dailyRate,
         int numberOfDays,
@@ -7,7 +11,8 @@ public interface IPricingEngine
         decimal deliveryDistanceKm,
         int? categoryId = null,
         decimal promoDiscountPercent = 0,
-        bool chargeDelivery = true);
+        bool chargeDelivery = true,
+        decimal? listingFlatDeliveryFee = null);
     Task<decimal> CalculateDeliveryFeeAsync(decimal distanceKm);
     Task<decimal> GetDiscountPercentAsync(int numberOfDays, int? categoryId = null);
 }

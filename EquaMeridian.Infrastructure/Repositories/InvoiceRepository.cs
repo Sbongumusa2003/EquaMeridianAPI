@@ -92,8 +92,15 @@ public class InvoiceRepository : IInvoiceRepository
         {
             var rentalDays = Math.Max(1, (quotation.RentalEndDate.Date - quotation.RentalStartDate.Date).Days);
             var dailyRate = quotation.DailyRateZAR ?? quotation.Listing.DailyRateZAR;
+            var isPickup = (quotation.DeliveryAddress ?? "").Contains("pickup", StringComparison.OrdinalIgnoreCase);
+            var chargeDelivery = !isPickup && quotation.Listing.DeliveryAvailable;
+            var flatFee = chargeDelivery && quotation.Listing.DeliveryFeeZAR is > 0
+                ? quotation.Listing.DeliveryFeeZAR
+                : null;
             var pricing = await _pricingEngine.CalculateAsync(
-                dailyRate, rentalDays, quotation.Quantity, quotation.DeliveryDistanceKm ?? 0, quotation.Listing.CategoryID);
+                dailyRate, rentalDays, quotation.Quantity, quotation.DeliveryDistanceKm ?? 0, quotation.Listing.CategoryID,
+                chargeDelivery: chargeDelivery,
+                listingFlatDeliveryFee: flatFee);
 
             subtotal = pricing.RentalSubtotal;
             discountAmount = pricing.DiscountAmount;
@@ -103,7 +110,16 @@ public class InvoiceRepository : IInvoiceRepository
             totalAmount = pricing.PriceInclVat;
         }
 
-        var platformFeeAmount = Math.Round(totalAmount * (platformFeePercentage / 100m), 2);
+        // Platform commission is on rental after discount only — not on VAT or delivery.
+        var commissionBase = Math.Max(0m, subtotal - discountAmount);
+        var platformFeeAmount = Math.Round(commissionBase * (platformFeePercentage / 100m), 2);
+        if (feeConfig != null)
+        {
+            if (feeConfig.MinFee > 0 && platformFeeAmount < feeConfig.MinFee)
+                platformFeeAmount = feeConfig.MinFee;
+            if (feeConfig.MaxFee > 0 && platformFeeAmount > feeConfig.MaxFee)
+                platformFeeAmount = feeConfig.MaxFee;
+        }
         var supplierPayableAmount = totalAmount - platformFeeAmount;
 
         var invoiceDate = AppTime.Now;

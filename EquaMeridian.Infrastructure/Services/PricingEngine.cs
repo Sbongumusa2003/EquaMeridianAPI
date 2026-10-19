@@ -8,7 +8,8 @@ public class PricingEngine : IPricingEngine
     public async Task<PricingResult> CalculateAsync(
         decimal dailyRate, int numberOfDays, int quantity,
         decimal deliveryDistanceKm, int? categoryId = null, decimal promoDiscountPercent = 0,
-        bool chargeDelivery = true)
+        bool chargeDelivery = true,
+        decimal? listingFlatDeliveryFee = null)
     {
         var days = Math.Max(1, numberOfDays);
         var qty = Math.Max(1, quantity);
@@ -22,16 +23,29 @@ public class PricingEngine : IPricingEngine
         var deliveryFee = 0m;
         if (chargeDelivery)
         {
-            var perUnitDeliveryFee = await CalculateDeliveryFeeAsync(deliveryDistanceKm);
-            deliveryFee = Math.Round(perUnitDeliveryFee * qty, 2);
+            // Prefer the supplier's listing flat fee when provided; otherwise platform distance formula.
+            // Flat fee is charged once per cart/quote line (not × quantity) — one delivery leg.
+            // Distance-based fee still scales with quantity (legacy behaviour).
+            if (listingFlatDeliveryFee is > 0)
+            {
+                deliveryFee = Math.Round(listingFlatDeliveryFee.Value, 2);
+            }
+            else
+            {
+                var perUnitDeliveryFee = await CalculateDeliveryFeeAsync(deliveryDistanceKm);
+                deliveryFee = Math.Round(perUnitDeliveryFee * qty, 2);
+            }
         }
 
-        var priceExclVat = rentalSubtotal - discountAmount + deliveryFee;
-
+        // VAT is calculated on the rental amount only (after discount).
+        // Delivery fee is excluded from the VAT base (zero-rated for tax purposes).
+        var taxableAmount = rentalSubtotal - discountAmount;
         var vatRate = await GetVatRateAsync();
-        var vatAmount = Math.Round(priceExclVat * (vatRate / 100m), 2);
+        var vatAmount = Math.Round(taxableAmount * (vatRate / 100m), 2);
 
-        var priceInclVat = priceExclVat + vatAmount;
+        // Price excl VAT still includes delivery so totals remain consistent with invoices.
+        var priceExclVat = taxableAmount + deliveryFee;
+        var priceInclVat = taxableAmount + vatAmount + deliveryFee;
 
         return new PricingResult
         {

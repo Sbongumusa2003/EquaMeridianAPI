@@ -72,11 +72,20 @@ public class QuotationRepository : IQuotationRepository
             return new QuotationSubmitResult { Success = false, Error = "Quote expiration date must be in the future." };
 
         var days = Math.Max(1, (quotation.RentalEndDate.Date - quotation.RentalStartDate.Date).Days);
-        var distanceKm = await _distanceService.CalculateDistanceKmAsync(
-            quotation.Listing.Location, quotation.DeliveryAddress);
+        var isPickup = IsPickupAddress(quotation.DeliveryAddress);
+        var distanceKm = isPickup
+            ? 0m
+            : await _distanceService.CalculateDistanceKmAsync(
+                quotation.Listing.Location, quotation.DeliveryAddress);
 
+        var chargeDelivery = !isPickup && quotation.Listing.DeliveryAvailable;
+        var flatFee = chargeDelivery && quotation.Listing.DeliveryFeeZAR is > 0
+            ? quotation.Listing.DeliveryFeeZAR
+            : null;
         var pricing = await _pricingEngine.CalculateAsync(
-            dto.DailyRateZAR, days, quotation.Quantity, distanceKm, quotation.Listing.CategoryID);
+            dto.DailyRateZAR, days, quotation.Quantity, distanceKm, quotation.Listing.CategoryID,
+            chargeDelivery: chargeDelivery,
+            listingFlatDeliveryFee: flatFee);
 
         quotation.DailyRateZAR = dto.DailyRateZAR;
         quotation.WeeklyRateZAR = dto.WeeklyRateZAR;
@@ -85,11 +94,16 @@ public class QuotationRepository : IQuotationRepository
         quotation.RentalSubtotal = pricing.RentalSubtotal;
         quotation.DiscountPercent = pricing.DiscountPercent;
         quotation.DiscountAmount = pricing.DiscountAmount;
-        quotation.PriceExclVat = pricing.PriceExclVat;
-        quotation.VatRate = dto.VatRate ?? pricing.VatRate;
-        quotation.PriceInclVat = dto.VatRate.HasValue
-            ? pricing.PriceExclVat + Math.Round(pricing.PriceExclVat * (dto.VatRate.Value / 100m), 2)
-            : pricing.PriceInclVat;
+
+        // VAT applies to rental only (after discount). Delivery is excluded from the VAT base.
+        // When the supplier overrides VatRate, recompute on the taxable amount — never on PriceExclVat
+        // (which already includes delivery).
+        var vatRate = dto.VatRate ?? pricing.VatRate;
+        var taxableAmount = pricing.RentalSubtotal - pricing.DiscountAmount;
+        var vatAmount = Math.Round(taxableAmount * (vatRate / 100m), 2);
+        quotation.VatRate = vatRate;
+        quotation.PriceExclVat = taxableAmount + pricing.DeliveryFee;
+        quotation.PriceInclVat = taxableAmount + vatAmount + pricing.DeliveryFee;
         quotation.EstimatedTotal = quotation.PriceInclVat.Value;
         quotation.SecurityDeposit = dto.SecurityDeposit;
         quotation.DamageWaiverFee = dto.DamageWaiverFee;
@@ -153,9 +167,18 @@ public class QuotationRepository : IQuotationRepository
             };
 
         var rentalDays = Math.Max(1, (dto.EndDate.Date - dto.StartDate.Date).Days);
-        var distanceKm = await _distanceService.CalculateDistanceKmAsync(listing.Location, dto.DeliveryAddress);
+        var isPickup = IsPickupAddress(dto.DeliveryAddress);
+        var distanceKm = isPickup
+            ? 0m
+            : await _distanceService.CalculateDistanceKmAsync(listing.Location, dto.DeliveryAddress);
+        var chargeDelivery = !isPickup && listing.DeliveryAvailable;
+        var flatFee = chargeDelivery && listing.DeliveryFeeZAR is > 0
+            ? listing.DeliveryFeeZAR
+            : null;
         var pricing = await _pricingEngine.CalculateAsync(
-            listing.DailyRateZAR, rentalDays, dto.Quantity, distanceKm, listing.CategoryID);
+            listing.DailyRateZAR, rentalDays, dto.Quantity, distanceKm, listing.CategoryID,
+            chargeDelivery: chargeDelivery,
+            listingFlatDeliveryFee: flatFee);
 
         var quotation = new Quotation
         {
@@ -330,8 +353,15 @@ public class QuotationRepository : IQuotationRepository
             }
             else
             {
+                var isPickup = IsPickupAddress(q.DeliveryAddress);
+                var chargeDelivery = !isPickup && q.Listing.DeliveryAvailable;
+                var flatFee = chargeDelivery && q.Listing.DeliveryFeeZAR is > 0
+                    ? q.Listing.DeliveryFeeZAR
+                    : null;
                 var pricing = await _pricingEngine.CalculateAsync(
-                    effectiveDailyRate, days, q.Quantity, q.DeliveryDistanceKm ?? 0, q.Listing.CategoryID);
+                    effectiveDailyRate, days, q.Quantity, q.DeliveryDistanceKm ?? 0, q.Listing.CategoryID,
+                    chargeDelivery: chargeDelivery,
+                    listingFlatDeliveryFee: flatFee);
                 estimatedTotal = pricing.PriceInclVat;
             }
 
@@ -415,8 +445,8 @@ public class QuotationRepository : IQuotationRepository
                 Error = "This equipment is no longer available in the requested quantity."
             };
 
-        q.Listing.UnitsAvailable -= q.Quantity;
-        q.Listing.UnitsReserved += q.Quantity;
+        // Confirm from free stock — do NOT inflate UnitsReserved (that counter is cart soft-holds only).
+        ListingInventory.ConfirmFromStock(q.Listing, q.Quantity);
         var competingQuotes = await _db.Quotations
             .Include(x => x.Listing)
             .Where(x => x.ContractorID == contractorId
@@ -566,13 +596,14 @@ public class QuotationRepository : IQuotationRepository
         EstimatedTotal = q.EstimatedTotal
     };
 
-    private static string InferFulfillmentMethod(string? deliveryAddress)
+    private static string InferFulfillmentMethod(string? deliveryAddress) =>
+        IsPickupAddress(deliveryAddress) ? "Contractor Pickup" : "Supplier Delivery";
+
+    private static bool IsPickupAddress(string? deliveryAddress)
     {
         var a = (deliveryAddress ?? string.Empty).Trim();
-        if (a.Contains("pickup", StringComparison.OrdinalIgnoreCase)
+        return a.Contains("pickup", StringComparison.OrdinalIgnoreCase)
             || a.Contains("collect", StringComparison.OrdinalIgnoreCase)
-            || a.StartsWith("Pickup:", StringComparison.OrdinalIgnoreCase))
-            return "Contractor Pickup";
-        return "Supplier Delivery";
+            || a.StartsWith("Pickup:", StringComparison.OrdinalIgnoreCase);
     }
 }

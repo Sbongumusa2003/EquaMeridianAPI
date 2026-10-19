@@ -61,7 +61,15 @@ builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
 builder.Services.AddScoped<IPayoutRepository, PayoutRepository>();
 builder.Services.AddScoped<IPricingEngine, PricingEngine>();
 builder.Services.AddScoped<IDiscountTierRepository, DiscountTierRepository>();
-builder.Services.AddScoped<IDeliveryDistanceService, PlaceholderDeliveryDistanceService>();
+// Real road distances via OpenRouteService (South Africa). Falls back to
+// SaCityDeliveryDistanceService when the API key is missing or the call fails.
+// Replaces the old hash-based PlaceholderDeliveryDistanceService which produced
+// inconsistent fees for the same address pair.
+builder.Services.AddHttpClient<IDeliveryDistanceService, OpenRouteDeliveryDistanceService>(client =>
+{
+    client.Timeout = TimeSpan.FromSeconds(15);
+    client.DefaultRequestHeaders.UserAgent.ParseAdd("EquaMeridian/1.0");
+});
 builder.Services.AddScoped<ICartRepository, CartRepository>();
 builder.Services.AddScoped<IWishlistRepository, WishlistRepository>();
 builder.Services.AddSingleton<ChatbotIntentModel>();

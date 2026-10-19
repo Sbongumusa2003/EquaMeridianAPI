@@ -55,16 +55,22 @@ public class SaCityDeliveryDistanceService : IDeliveryDistanceService
         var roadKm = Math.Round((decimal)(km * 1.25), 1);
         return Task.FromResult(Math.Max(5m, roadKm));
     }
+    /// <summary>
+    /// Offline estimate aligned with platform FeeConfiguration defaults
+    /// (base R350, free 50 km, R15/km). Prefer PricingEngine at runtime.
+    /// </summary>
     public static decimal EstimateDeliveryFeeZar(decimal distanceKm, decimal? listingFlatFee = null)
     {
         if (listingFlatFee.HasValue && listingFlatFee.Value > 0)
             return Math.Round(listingFlatFee.Value, 2);
 
-        const decimal baseFee = 1500m;
-        const decimal perKm = 28m;
-        const decimal minimum = 2500m;
-        var fee = baseFee + (distanceKm * perKm);
-        return Math.Round(Math.Max(minimum, fee), 2);
+        const decimal baseFee = 350m;
+        const decimal freeRadiusKm = 50m;
+        const decimal ratePerKm = 15m;
+        if (distanceKm <= freeRadiusKm)
+            return baseFee;
+        var extraKm = distanceKm - freeRadiusKm;
+        return Math.Round(baseFee + (extraKm * ratePerKm), 2);
     }
 
     private static (double Lat, double Lon)? ResolvePoint(string? text)
@@ -93,13 +99,24 @@ public class SaCityDeliveryDistanceService : IDeliveryDistanceService
 
     private static double ToRad(double deg) => deg * Math.PI / 180.0;
 
+    /// <summary>
+    /// Deterministic fallback when neither address matches a known SA city.
+    /// Uses a stable djb2-style hash so the same origin→dest pair always returns
+    /// the same distance across process restarts (unlike string.GetHashCode).
+    /// </summary>
     private static decimal HashFallback(string? origin, string? dest)
     {
         var o = (origin ?? "").Trim().ToLowerInvariant();
         var d = (dest ?? "").Trim().ToLowerInvariant();
         if (string.IsNullOrEmpty(o) || string.IsNullOrEmpty(d) || o == d) return 0m;
-        var hash = (o + "|" + d).GetHashCode();
-        var normalized = Math.Abs(hash % 1150) / 10m;
-        return Math.Round(5m + normalized, 1);
+
+        unchecked
+        {
+            uint hash = 5381;
+            foreach (var c in o + "|" + d)
+                hash = ((hash << 5) + hash) + c;
+            var normalized = (hash % 1150) / 10m;
+            return Math.Round(5m + normalized, 1);
+        }
     }
 }

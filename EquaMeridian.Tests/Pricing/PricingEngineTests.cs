@@ -65,11 +65,12 @@ public class PricingEngineTests : IDisposable
         result.DiscountPercent.Should().Be(0m);
         result.DiscountAmount.Should().Be(0m);
         result.DeliveryFee.Should().Be(350m);
-        result.PriceExclVat.Should().Be(3350m);
+        // VAT is on rental only (3000 * 15% = 450); delivery is excluded from the VAT base.
+        result.PriceExclVat.Should().Be(3350m);   // taxable 3000 + delivery 350
         result.VatRate.Should().Be(15m);
-        result.VatAmount.Should().Be(502.50m);
-        result.PriceInclVat.Should().Be(3852.50m);
-        result.GrandTotal.Should().Be(3852.50m);
+        result.VatAmount.Should().Be(450m);
+        result.PriceInclVat.Should().Be(3800m);   // 3000 + 450 VAT + 350 delivery
+        result.GrandTotal.Should().Be(3800m);
     }
 
     [Fact]
@@ -87,7 +88,10 @@ public class PricingEngineTests : IDisposable
         result.DiscountPercent.Should().Be(5m);
         result.DiscountAmount.Should().Be(500m);
         result.DeliveryFee.Should().Be(350m);
-        result.PriceExclVat.Should().Be(9850m);
+        // Taxable = 10000 - 500 = 9500; VAT = 9500 * 15% = 1425; delivery excluded from VAT.
+        result.PriceExclVat.Should().Be(9850m);   // 9500 + 350
+        result.VatAmount.Should().Be(1425m);
+        result.PriceInclVat.Should().Be(11275m);  // 9500 + 1425 + 350
     }
 
     [Fact]
@@ -121,7 +125,9 @@ public class PricingEngineTests : IDisposable
 
         result.DiscountPercent.Should().Be(100m);
         result.DiscountAmount.Should().Be(30000m);
-        result.PriceExclVat.Should().Be(350m);
+        result.PriceExclVat.Should().Be(350m);   // only delivery remains
+        result.VatAmount.Should().Be(0m);         // taxable amount is zero → no VAT
+        result.PriceInclVat.Should().Be(350m);
         result.TierDiscountPercent.Should().Be(15m);
         result.PromoDiscountPercent.Should().Be(85m);
     }
@@ -151,7 +157,10 @@ public class PricingEngineTests : IDisposable
         // Delivering 3 units of machinery should cost 3x the per-unit delivery fee.
         result.DeliveryFee.Should().Be(1050m);
         result.RentalSubtotal.Should().Be(9000m);
-        result.PriceExclVat.Should().Be(10050m);
+        result.PriceExclVat.Should().Be(10050m);  // 9000 + 1050
+        // VAT only on rental (9000 * 15% = 1350); delivery excluded.
+        result.VatAmount.Should().Be(1350m);
+        result.PriceInclVat.Should().Be(11400m);  // 9000 + 1350 + 1050
     }
 
     [Theory]

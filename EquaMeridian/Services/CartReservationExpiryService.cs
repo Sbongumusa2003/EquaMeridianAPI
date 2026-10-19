@@ -22,10 +22,7 @@ public class CartReservationExpiryService : BackgroundService
                 foreach (var item in stale)
                 {
                     if (item.Listing != null)
-                    {
-                        item.Listing.UnitsReserved = Math.Max(0, item.Listing.UnitsReserved - item.Quantity);
-                        item.Listing.UnitsAvailable += item.Quantity;
-                    }
+                        ListingInventory.SoftRelease(item.Listing, item.Quantity);
                     db.CartItems.Remove(item);
                 }
                 if (stale.Count > 0) await db.SaveChangesAsync(stoppingToken);
