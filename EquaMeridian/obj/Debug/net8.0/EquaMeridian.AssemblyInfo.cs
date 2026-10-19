@@ -15,7 +15,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("EquaMeridian")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+e7f525a158bb029d9809d467927d982f82a9bf3d")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+e74a3738a465b5cd40efe06231a150ea202a70cb")]
 [assembly: System.Reflection.AssemblyProductAttribute("EquaMeridian")]
 [assembly: System.Reflection.AssemblyTitleAttribute("EquaMeridian")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

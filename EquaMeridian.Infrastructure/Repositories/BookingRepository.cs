@@ -774,13 +774,17 @@ public class BookingRepository : IBookingRepository
                 || m.CanMarkReadyForPickup || m.CanMarkReadyForReturnPickup),
             CompletedBookings = completed.Count,
             TotalLeasedToDate = completed.Sum(b =>
-                Math.Max(1, (b.RentalEndDate.Date - b.RentalStartDate.Date).Days) * b.Listing.DailyRateZAR)
+                HireDuration.InclusiveDays(b.RentalStartDate, b.RentalEndDate) * b.Listing.DailyRateZAR)
         };
     }
 
+    /// <summary>
+    /// Online cancel is only allowed before both parties sign the lease.
+    /// After dual signature (AwaitingPayment / Confirmed / later) use support or a dispute.
+    /// </summary>
     private static readonly HashSet<string> CancellableStatuses = new()
     {
-        "AwaitingSignature", "AwaitingPayment", "Confirmed"
+        "AwaitingSignature"
     };
 
     public async Task<CancelBookingResult> CancelAsync(int bookingId, int userId, string role, string reason)
@@ -814,16 +818,28 @@ public class BookingRepository : IBookingRepository
                 Error = "This booking has already progressed past cancellation (machinery is being prepared, delivered, or returned). " +
                         "Please raise a dispute instead if there's an issue."
             };
+
+        // Strict: once both parties signed, the hire is binding online.
+        if (booking.Status is "AwaitingPayment" or "Confirmed")
+            return new CancelBookingResult
+            {
+                Success = false,
+                Error = "This booking cannot be cancelled online because the lease has already been signed by both parties. " +
+                        "Please contact support or raise a dispute if you need to end the hire early."
+            };
+
         if (!CancellableStatuses.Contains(booking.Status))
             return new CancelBookingResult
             {
                 Success = false,
-                Error = "This booking has already progressed past cancellation (machinery is being prepared, delivered, or returned). " +
-                        "Please raise a dispute instead if there's an issue."
+                Error = "This booking has already progressed past cancellation. " +
+                        "Please contact support or raise a dispute if there's an issue."
             };
 
         var cancelledByRole = isContractorOwner ? "Contractor" : "Supplier";
-        var feeApplies = (booking.RentalStartDate - AppTime.Now).TotalHours < 48;
+        // Pre–dual-sign cancel is free; units were never claimed.
+        var feeApplies = false;
+        var statusBeforeCancel = booking.Status;
 
         booking.Status = "Cancelled";
         booking.CancelledAt = AppTime.Now;
@@ -837,9 +853,7 @@ public class BookingRepository : IBookingRepository
             Stage = "Cancelled",
             ChangedByUserID = userId,
             ChangedByRole = cancelledByRole,
-            Notes = feeApplies
-                ? $"Cancelled by {cancelledByRole.ToLower()}: {reason} (within 48-hour cancellation window)"
-                : $"Cancelled by {cancelledByRole.ToLower()}: {reason}",
+            Notes = $"Cancelled by {cancelledByRole.ToLower()} before lease fully signed: {reason}",
             CreatedDate = AppTime.Now
         });
         if (booking.Delivery != null && booking.Delivery.Status != "Cancelled")
@@ -900,10 +914,15 @@ public class BookingRepository : IBookingRepository
             }
         }
 
-        var cancelledQty = Math.Max(1, booking.Quantity);
-        var listingToRestock = await _db.Listings.FirstOrDefaultAsync(l => l.ListingID == booking.ListingID)
-                               ?? booking.Listing;
-        ReturnHireUnits(listingToRestock, cancelledQty, toAvailable: true);
+        // Units are only claimed after both parties sign the lease (left AwaitingSignature).
+        // Cancelling before that must not inflate UnitsAvailable.
+        if (statusBeforeCancel != "AwaitingSignature")
+        {
+            var cancelledQty = Math.Max(1, booking.Quantity);
+            var listingToRestock = await _db.Listings.FirstOrDefaultAsync(l => l.ListingID == booking.ListingID)
+                                   ?? booking.Listing;
+            ReturnHireUnits(listingToRestock, cancelledQty, toAvailable: true);
+        }
 
         await _db.SaveChangesAsync();
         var otherPartyIsContractor = isSupplierOwner;

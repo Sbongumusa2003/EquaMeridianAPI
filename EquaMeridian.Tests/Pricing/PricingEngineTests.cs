@@ -19,6 +19,17 @@ public class PricingEngineTests : IDisposable
 
     public void Dispose() => _db.Dispose();
 
+    [Fact]
+    public void InclusiveHireDays_MonToWed_IsThreeDays()
+    {
+        // Plant hire is inclusive of start and end calendar dates.
+        var mon = new DateTime(2026, 10, 12);
+        var wed = new DateTime(2026, 10, 14);
+        HireDuration.InclusiveDays(mon, wed).Should().Be(3);
+        HireDuration.InclusiveDays(mon, mon).Should().Be(1);
+    }
+
+
     private void SeedFeeConfig(
         decimal vatRate = 15m,
         decimal baseFee = 350m,

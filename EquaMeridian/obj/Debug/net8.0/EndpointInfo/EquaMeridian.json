@@ -4789,6 +4789,53 @@
         }
       }
     },
+    "/api/locations/search": {
+      "get": {
+        "tags": [
+          "Locations"
+        ],
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/EquaMeridian.Controllers.PlaceSuggestionDto"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/EquaMeridian.Controllers.PlaceSuggestionDto"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/EquaMeridian.Controllers.PlaceSuggestionDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/location-tree": {
       "get": {
         "tags": [
@@ -7300,6 +7347,45 @@
         },
         "additionalProperties": false
       },
+      "EquaMeridian.Controllers.PlaceSuggestionDto": {
+        "type": "object",
+        "properties": {
+          "label": {
+            "type": "string"
+          },
+          "suburb": {
+            "type": "string",
+            "nullable": true
+          },
+          "city": {
+            "type": "string",
+            "nullable": true
+          },
+          "province": {
+            "type": "string",
+            "nullable": true
+          },
+          "postalCode": {
+            "type": "string",
+            "nullable": true
+          },
+          "country": {
+            "type": "string",
+            "nullable": true
+          },
+          "latitude": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "longitude": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
       "EquaMeridian.DTOs.Auth.ForgotPasswordRequest": {
         "required": [
           "email"
@@ -7865,6 +7951,10 @@
           "deliveryRatePerKm",
           "maxFee",
           "minFee",
+          "nonPaymentFeeMaxZAR",
+          "nonPaymentFeeMinZAR",
+          "nonPaymentFeePercent",
+          "paymentWindowHours",
           "vatRate"
         ],
         "type": "object",
@@ -7905,6 +7995,28 @@
             "format": "double"
           },
           "deliveryRatePerKm": {
+            "minimum": 0,
+            "type": "number",
+            "format": "double"
+          },
+          "paymentWindowHours": {
+            "maximum": 720,
+            "minimum": 1,
+            "type": "integer",
+            "format": "int32"
+          },
+          "nonPaymentFeePercent": {
+            "maximum": 100,
+            "minimum": 0,
+            "type": "number",
+            "format": "double"
+          },
+          "nonPaymentFeeMinZAR": {
+            "minimum": 0,
+            "type": "number",
+            "format": "double"
+          },
+          "nonPaymentFeeMaxZAR": {
             "minimum": 0,
             "type": "number",
             "format": "double"

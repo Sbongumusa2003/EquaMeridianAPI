@@ -71,7 +71,7 @@ public class QuotationRepository : IQuotationRepository
         if (dto.QuoteValidUntil.Date < AppTime.Now.Date)
             return new QuotationSubmitResult { Success = false, Error = "Quote expiration date must be in the future." };
 
-        var days = Math.Max(1, (quotation.RentalEndDate.Date - quotation.RentalStartDate.Date).Days);
+        var days = HireDuration.InclusiveDays(quotation.RentalStartDate, quotation.RentalEndDate);
         var isPickup = IsPickupAddress(quotation.DeliveryAddress);
         var distanceKm = isPickup
             ? 0m
@@ -166,7 +166,7 @@ public class QuotationRepository : IQuotationRepository
                 Error = "You have already requested a quotation for this listing for overlapping dates. Please check your existing requests."
             };
 
-        var rentalDays = Math.Max(1, (dto.EndDate.Date - dto.StartDate.Date).Days);
+        var rentalDays = HireDuration.InclusiveDays(dto.StartDate, dto.EndDate);
         var isPickup = IsPickupAddress(dto.DeliveryAddress);
         var distanceKm = isPickup
             ? 0m
@@ -343,7 +343,7 @@ public class QuotationRepository : IQuotationRepository
         var result = new List<QuotationCompareDto>();
         foreach (var q in quotations)
         {
-            var days = Math.Max(1, (q.RentalEndDate.Date - q.RentalStartDate.Date).Days);
+            var days = HireDuration.InclusiveDays(q.RentalStartDate, q.RentalEndDate);
             var effectiveDailyRate = q.DailyRateZAR ?? q.Listing.DailyRateZAR;
 
             decimal estimatedTotal;
@@ -445,8 +445,8 @@ public class QuotationRepository : IQuotationRepository
                 Error = "This equipment is no longer available in the requested quantity."
             };
 
-        // Confirm from free stock — do NOT inflate UnitsReserved (that counter is cart soft-holds only).
-        ListingInventory.ConfirmFromStock(q.Listing, q.Quantity);
+        // Do NOT claim units here. Stock is committed only when both parties have signed
+        // the lease (LeaseAgreementRepository.SignAsync when fully executed).
         var competingQuotes = await _db.Quotations
             .Include(x => x.Listing)
             .Where(x => x.ContractorID == contractorId

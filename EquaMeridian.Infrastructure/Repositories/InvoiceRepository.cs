@@ -81,7 +81,7 @@ public class InvoiceRepository : IInvoiceRepository
         if (quotation.PriceInclVat.HasValue && quotation.PriceExclVat.HasValue)
         {
             subtotal = quotation.RentalSubtotal ?? (quotation.DailyRateZAR ?? quotation.Listing.DailyRateZAR)
-                * quotation.Quantity * Math.Max(1, (quotation.RentalEndDate.Date - quotation.RentalStartDate.Date).Days);
+                * quotation.Quantity * HireDuration.InclusiveDays(quotation.RentalStartDate, quotation.RentalEndDate);
             discountAmount = quotation.DiscountAmount ?? 0m;
             deliveryFee = quotation.DeliveryFee ?? 0m;
             vatRate = quotation.VatRate ?? feeConfig?.VATRate ?? 15m;
@@ -90,7 +90,7 @@ public class InvoiceRepository : IInvoiceRepository
         }
         else
         {
-            var rentalDays = Math.Max(1, (quotation.RentalEndDate.Date - quotation.RentalStartDate.Date).Days);
+            var rentalDays = HireDuration.InclusiveDays(quotation.RentalStartDate, quotation.RentalEndDate);
             var dailyRate = quotation.DailyRateZAR ?? quotation.Listing.DailyRateZAR;
             var isPickup = (quotation.DeliveryAddress ?? "").Contains("pickup", StringComparison.OrdinalIgnoreCase);
             var chargeDelivery = !isPickup && quotation.Listing.DeliveryAvailable;

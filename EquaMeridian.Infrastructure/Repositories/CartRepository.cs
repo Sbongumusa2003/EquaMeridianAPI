@@ -34,10 +34,19 @@ public class CartRepository : ICartRepository
         if (!string.IsNullOrWhiteSpace(promoCode))
             codeResolution = await _campaigns.ResolveDiscountCodeAsync(promoCode);
 
+        // Soft oversell awareness: subtract qty on bookings still awaiting dual lease signature.
+        // Advisory only — cart add is not hard-blocked by this.
+        var listingIds = items.Select(i => i.ListingID).Distinct().ToList();
+        var pendingByListing = await _db.Bookings.AsNoTracking()
+            .Where(b => listingIds.Contains(b.ListingID) && b.Status == "AwaitingSignature")
+            .GroupBy(b => b.ListingID)
+            .Select(g => new { ListingID = g.Key, Qty = g.Sum(b => b.Quantity) })
+            .ToDictionaryAsync(x => x.ListingID, x => x.Qty);
+
         var itemDtos = new List<(CartItemDto Dto, int SupplierId, string SupplierName)>();
         foreach (var item in items)
         {
-            var days = Math.Max(1, (item.RentalEndDate.Date - item.RentalStartDate.Date).Days);
+            var days = HireDuration.InclusiveDays(item.RentalStartDate, item.RentalEndDate);
             var isPickup = IsContractorPickup(item.DeliveryAddress, item.Listing.Location);
             var distanceKm = isPickup
                 ? 0m
@@ -72,10 +81,11 @@ public class CartRepository : ICartRepository
                 ListingID = item.ListingID,
                 ListingTitle = item.Listing.ListingTitle,
                 ImageUrl = image,
-                // Units already held by THIS cart line were subtracted from Listing.UnitsAvailable
-                // when the item was added. For the contractor who holds them, they still count
-                // toward what they can keep / increase to — so report free + own hold.
-                UnitsAvailable = item.Listing.UnitsAvailable + item.Quantity,
+                // Stock is not held in cart — committed only when both parties sign the lease.
+                // EffectiveAvailable subtracts other bookings still awaiting dual signature (advisory).
+                UnitsAvailable = ListingInventory.EffectiveAvailable(
+                    item.Listing.UnitsAvailable,
+                    pendingByListing.GetValueOrDefault(item.ListingID)),
                 Quantity = item.Quantity,
                 RentalStartDate = item.RentalStartDate,
                 RentalEndDate = item.RentalEndDate,
@@ -95,7 +105,9 @@ public class CartRepository : ICartRepository
                 PriceInclVat = pricing.PriceInclVat,
                 IsAvailable = item.Listing.AvailabilityStatus == "Active"
                               && item.Listing.PricingMode == "Fixed"
-                              && (item.Listing.UnitsAvailable + item.Quantity) >= item.Quantity
+                              && ListingInventory.EffectiveAvailable(
+                                     item.Listing.UnitsAvailable,
+                                     pendingByListing.GetValueOrDefault(item.ListingID)) >= item.Quantity
             };
 
             itemDtos.Add((dto, item.Listing.SupplierID, item.Listing.Supplier.CompanyName ?? item.Listing.Supplier.FullName));
@@ -200,14 +212,15 @@ public class CartRepository : ICartRepository
             c.RentalStartDate == dto.StartDate.Date && c.RentalEndDate == dto.EndDate.Date);
 
         var ttl = TimeSpan.FromMinutes(30);
+        // Cart does NOT reserve stock. Units stay available to other contractors until
+        // both parties have signed the lease agreement.
         if (existing != null)
         {
-            if (listing.UnitsAvailable < dto.Quantity)
+            if (listing.UnitsAvailable < existing.Quantity + dto.Quantity)
                 return (false, $"Only {listing.UnitsAvailable} unit(s) of this item are currently available.");
             existing.Quantity += dto.Quantity;
             existing.DeliveryAddress = address;
             existing.ReservedUntil = AppTime.Now.Add(ttl);
-            ListingInventory.SoftHold(listing, dto.Quantity);
         }
         else
         {
@@ -222,7 +235,6 @@ public class CartRepository : ICartRepository
                 AddedDate = AppTime.Now,
                 ReservedUntil = AppTime.Now.Add(ttl)
             });
-            ListingInventory.SoftHold(listing, dto.Quantity);
         }
 
         await _db.SaveChangesAsync();
@@ -238,15 +250,12 @@ public class CartRepository : ICartRepository
             .FirstOrDefaultAsync(c => c.CartItemID == cartItemId && c.ContractorID == contractorId);
         if (item == null) return (false, "Cart item not found.");
 
-        // Units held by this line already reduced Listing.UnitsAvailable. Free stock for
-        // this contractor = remaining market stock + what this line currently holds.
-        var oldQty = item.Quantity;
         var newQty = dto.Quantity;
         if (newQty < 1)
             return (false, "Quantity must be at least 1.");
-        var freeForContractor = item.Listing.UnitsAvailable + oldQty;
-        if (freeForContractor < newQty)
-            return (false, $"Only {freeForContractor} unit(s) of this item are currently available.");
+        // No cart hold — availability is the open market stock.
+        if (item.Listing.UnitsAvailable < newQty)
+            return (false, $"Only {item.Listing.UnitsAvailable} unit(s) of this item are currently available.");
 
         var method = (dto.FulfillmentMethod ?? "").Trim();
         var isPickup = method.Equals("Contractor Pickup", StringComparison.OrdinalIgnoreCase)
@@ -271,12 +280,6 @@ public class CartRepository : ICartRepository
                 return (false, "Please enter a delivery address, or choose Contractor Pickup.");
         }
 
-        var delta = newQty - oldQty;
-        if (delta > 0)
-            ListingInventory.SoftHold(item.Listing, delta);
-        else if (delta < 0)
-            ListingInventory.SoftRelease(item.Listing, -delta);
-
         item.RentalStartDate = dto.StartDate.Date;
         item.RentalEndDate = dto.EndDate.Date;
         item.Quantity = newQty;
@@ -292,8 +295,7 @@ public class CartRepository : ICartRepository
             .FirstOrDefaultAsync(c => c.CartItemID == cartItemId && c.ContractorID == contractorId);
         if (item == null) return false;
 
-        if (item.Listing != null)
-            ListingInventory.SoftRelease(item.Listing, item.Quantity);
+        // No inventory change — cart never reserved stock.
         _db.CartItems.Remove(item);
         await _db.SaveChangesAsync();
         return true;
@@ -313,12 +315,9 @@ public class CartRepository : ICartRepository
         {
             if (item.Listing.AvailabilityStatus != "Active" || item.Listing.PricingMode != "Fixed")
                 return new CheckoutResult { Success = false, Error = $"'{item.Listing.ListingTitle}' is no longer available and has been removed from your cart. Please review your cart and try again." };
-            // Units for this cart line were already taken from UnitsAvailable when the item
-            // was added. Treat the line's Quantity as held for this contractor regardless of
-            // ReservedUntil TTL so checkout is not blocked by the soft-hold window.
-            var freeUnits = item.Listing.UnitsAvailable + item.Quantity;
-            if (freeUnits < item.Quantity)
-                return new CheckoutResult { Success = false, Error = $"Only {freeUnits} unit(s) of '{item.Listing.ListingTitle}' are available. Please adjust the quantity in your cart." };
+            // Advisory check only — stock is committed at dual lease signature, not at checkout.
+            if (item.Listing.UnitsAvailable < item.Quantity)
+                return new CheckoutResult { Success = false, Error = $"Only {item.Listing.UnitsAvailable} unit(s) of '{item.Listing.ListingTitle}' are available. Please adjust the quantity in your cart." };
         }
 
         PromoCodeResolution? codeResolution = null;
@@ -342,7 +341,7 @@ public class CartRepository : ICartRepository
             var priced = new List<CheckoutPricedLine>();
             foreach (var item in items)
             {
-                var days = Math.Max(1, (item.RentalEndDate.Date - item.RentalStartDate.Date).Days);
+                var days = HireDuration.InclusiveDays(item.RentalStartDate, item.RentalEndDate);
                 var isPickup = IsContractorPickup(item.DeliveryAddress, item.Listing.Location);
                 var distanceKm = isPickup
                     ? 0m
@@ -415,12 +414,11 @@ public class CartRepository : ICartRepository
                 if (item.Listing.AvailabilityStatus != "Active")
                     throw new InvalidOperationException($"'{item.Listing.ListingTitle}' is no longer available.");
 
-                var freeForContractor = item.Listing.UnitsAvailable + item.Quantity;
-                if (freeForContractor < item.Quantity)
+                // Do NOT claim units here. Inventory is committed only when both contractor and
+                // supplier have signed the lease (see LeaseAgreementRepository.SignAsync).
+                if (item.Listing.UnitsAvailable < item.Quantity)
                     throw new InvalidOperationException(
-                        $"Only {freeForContractor} unit(s) of '{item.Listing.ListingTitle}' remain.");
-
-                ListingInventory.ConfirmFromHold(item.Listing, item.Quantity);
+                        $"Only {item.Listing.UnitsAvailable} unit(s) of '{item.Listing.ListingTitle}' remain.");
 
                 var booking = new Booking
                 {

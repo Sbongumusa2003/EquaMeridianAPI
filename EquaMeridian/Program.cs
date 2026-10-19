@@ -81,6 +81,7 @@ builder.Services.AddScoped<ISmsService, ClickSendSmsService>();
 builder.Services.AddHostedService<QuoteExpiryTimerService>();
 builder.Services.AddHostedService<CampaignLifecycleTimerService>();
 builder.Services.AddHostedService<CartReservationExpiryService>();
+builder.Services.AddHostedService<UnpaidBookingExpiryService>();
 
 builder.Services.AddCors(options =>
 {
@@ -273,6 +274,13 @@ using (var scope = app.Services.CreateScope())
     await db.Database.ExecuteSqlRawAsync("""
         ALTER TABLE "Documents" ADD COLUMN IF NOT EXISTS "Content" bytea NULL;
         ALTER TABLE "Documents" ADD COLUMN IF NOT EXISTS "ContentType" text NULL;
+        """);
+    // Non-payment fee + payment window (admin-configurable).
+    await db.Database.ExecuteSqlRawAsync("""
+        ALTER TABLE "FeeConfigurations" ADD COLUMN IF NOT EXISTS "PaymentWindowHours" integer NOT NULL DEFAULT 48;
+        ALTER TABLE "FeeConfigurations" ADD COLUMN IF NOT EXISTS "NonPaymentFeePercent" numeric NOT NULL DEFAULT 25;
+        ALTER TABLE "FeeConfigurations" ADD COLUMN IF NOT EXISTS "NonPaymentFeeMinZAR" numeric NOT NULL DEFAULT 500;
+        ALTER TABLE "FeeConfigurations" ADD COLUMN IF NOT EXISTS "NonPaymentFeeMaxZAR" numeric NOT NULL DEFAULT 5000;
         """);
     await DataSeeder.SeedAsync(db, builder.Configuration);
     // DatabaseObjectsInitializer contains SQL Server-specific T-SQL.

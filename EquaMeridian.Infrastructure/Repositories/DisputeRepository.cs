@@ -207,7 +207,7 @@ public class DisputeRepository : IDisputeRepository
         var isComplainantContractor = booking.ContractorID == complainantId;
         var respondent = isComplainantContractor ? booking.Supplier : booking.Contractor;
 
-        var leaseDays = Math.Max(1, (booking.RentalEndDate.Date - booking.RentalStartDate.Date).Days);
+        var leaseDays = HireDuration.InclusiveDays(booking.RentalStartDate, booking.RentalEndDate);
         var bookingAmount = leaseDays * booking.Listing.DailyRateZAR;
 
         var dispute = new Dispute

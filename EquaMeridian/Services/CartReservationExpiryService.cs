@@ -1,6 +1,10 @@
 using EquaMeridian.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 
+/// <summary>
+/// Clears expired cart lines by ReservedUntil (cart line TTL only).
+/// Does NOT touch listing inventory — cart never claims UnitsAvailable.
+/// </summary>
 public class CartReservationExpiryService : BackgroundService
 {
     private readonly IServiceScopeFactory _scopes;
@@ -16,20 +20,16 @@ public class CartReservationExpiryService : BackgroundService
                 using var scope = _scopes.CreateScope();
                 var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
                 var now = AppTime.Now;
-                var stale = await db.CartItems.Include(c => c.Listing)
+                var stale = await db.CartItems
                     .Where(c => c.ReservedUntil < now)
                     .ToListAsync(stoppingToken);
                 foreach (var item in stale)
-                {
-                    if (item.Listing != null)
-                        ListingInventory.SoftRelease(item.Listing, item.Quantity);
                     db.CartItems.Remove(item);
-                }
                 if (stale.Count > 0) await db.SaveChangesAsync(stoppingToken);
             }
             catch (Exception ex)
             {
-                Console.WriteLine("[CartReservationExpiry] " + ex.Message);
+                Console.WriteLine("[CartLineTtlExpiry] " + ex.Message);
             }
             try { await Task.Delay(TimeSpan.FromMinutes(2), stoppingToken); }
             catch (TaskCanceledException) { break; }

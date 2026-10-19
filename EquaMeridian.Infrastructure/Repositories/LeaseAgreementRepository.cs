@@ -9,8 +9,11 @@ public class LeaseAgreementRepository : ILeaseAgreementRepository
         "shall return it in the condition received, ordinary wear and tear excepted.";
 
     private const string DefaultCancellationPolicy =
-        "Cancellations made less than 48 hours before the rental start date may be subject to a " +
-        "cancellation fee as configured by the platform.";
+        "Online cancellation is only permitted before both parties have signed this lease. " +
+        "After both signatures, the hire is binding. Payment is due within the platform-configured " +
+        "payment window after the lease becomes fully executed. Failure to pay within that window " +
+        "cancels the booking and attracts a non-payment fee as configured by the platform, and the " +
+        "equipment may be released to other contractors.";
 
     private const string DefaultLiabilityTerms =
         "The Contractor assumes liability for loss or damage to the machinery while in their possession, " +
@@ -45,7 +48,9 @@ public class LeaseAgreementRepository : ILeaseAgreementRepository
             RentalEndDate = quotation.RentalEndDate,
             Quantity = quotation.Quantity,
             TotalAmount = quotation.EstimatedTotal,
-            PaymentDueDate = agreementDate.AddDays(30),
+            // Payment window starts when the lease is fully executed; provisional due date is 48h from creation
+            // and is refreshed to "now + 48h" when both parties sign.
+            PaymentDueDate = agreementDate.AddHours(48),
             PaymentMethod = quotation.EstimatedTotal > 50000m ? "EFT" : "PayFast",
             StandardTerms = DefaultStandardTerms,
             CancellationPolicy = DefaultCancellationPolicy,
@@ -183,14 +188,53 @@ public class LeaseAgreementRepository : ILeaseAgreementRepository
             var booking = await _db.Bookings.FirstOrDefaultAsync(b => b.BookingID == agreement.BookingID);
             if (booking != null && booking.Status == "AwaitingSignature")
             {
+                // Commit inventory only when both parties have signed.
+                var qty = Math.Max(1, booking.Quantity);
+                try
+                {
+                    await _db.Entry(agreement.Listing).ReloadAsync();
+                    ListingInventory.ConfirmFromStock(agreement.Listing, qty);
+                }
+                catch (InvalidOperationException)
+                {
+                    // Roll back this party's signature so we don't mark the lease fully
+                    // executed without stock.
+                    if (isSupplier)
+                    {
+                        agreement.SupplierSigned = false;
+                        agreement.SupplierSignatureName = null;
+                        agreement.SupplierDigitalSignature = null;
+                        agreement.SupplierSignedDate = null;
+                    }
+                    else
+                    {
+                        agreement.ContractorSigned = false;
+                        agreement.ContractorSignatureName = null;
+                        agreement.ContractorDigitalSignature = null;
+                        agreement.ContractorSignedDate = null;
+                    }
+                    agreement.Status = previousStatus;
+                    return new SignLeaseAgreementResult
+                    {
+                        Success = false,
+                        Error = $"This equipment is no longer available in the required quantity ({qty}). " +
+                                "Another hire may have been confirmed first. Please contact support."
+                    };
+                }
+
                 booking.Status = "AwaitingPayment";
+                // Start the payment clock from dual signature (hours from FeeConfiguration).
+                var feeCfg = await _db.FeeConfigurations.OrderByDescending(f => f.UpdatedAt).FirstOrDefaultAsync();
+                var windowHours = feeCfg is { PaymentWindowHours: > 0 } ? feeCfg.PaymentWindowHours : 48;
+                agreement.PaymentDueDate = AppTime.Now.AddHours(windowHours);
                 _db.BookingStatusHistories.Add(new BookingStatusHistory
                 {
                     BookingID = booking.BookingID,
                     Stage = booking.Status,
                     ChangedByUserID = userId,
                     ChangedByRole = "System",
-                    Notes = $"Lease agreement {agreement.AgreementNumber} fully executed — awaiting payment.",
+                    Notes = $"Lease agreement {agreement.AgreementNumber} fully executed — units committed. " +
+                            $"Payment due by {agreement.PaymentDueDate:dd MMM yyyy HH:mm}. Non-payment attracts a fee.",
                     CreatedDate = AppTime.Now
                 });
             }
