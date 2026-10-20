@@ -107,7 +107,9 @@ public class CartRepository : ICartRepository
                               && item.Listing.PricingMode == "Fixed"
                               && ListingInventory.EffectiveAvailable(
                                      item.Listing.UnitsAvailable,
-                                     pendingByListing.GetValueOrDefault(item.ListingID)) >= item.Quantity
+                                     pendingByListing.GetValueOrDefault(item.ListingID)) >= item.Quantity,
+                PickupAvailable = item.Listing.PickupAvailable,
+                DeliveryAvailable = item.Listing.DeliveryAvailable
             };
 
             itemDtos.Add((dto, item.Listing.SupplierID, item.Listing.Supplier.CompanyName ?? item.Listing.Supplier.FullName));

@@ -87,7 +87,8 @@ public class LeaseAgreementRepository : ILeaseAgreementRepository
             .Select(c => c.Name)
             .FirstOrDefaultAsync();
 
-        return MapToDetailDto(agreement, category, userId, role);
+        var invoice = await ResolveInvoiceAsync(agreement.QuotationID);
+        return MapToDetailDto(agreement, category, userId, role, invoice);
     }
 
     public async Task<(IEnumerable<LeaseAgreementListItemDto>, int)> GetAllForUserAsync(
@@ -247,10 +248,11 @@ public class LeaseAgreementRepository : ILeaseAgreementRepository
             .Select(c => c.Name)
             .FirstOrDefaultAsync();
 
+        var invoice = await ResolveInvoiceAsync(agreement.QuotationID);
         return new SignLeaseAgreementResult
         {
             Success = true,
-            Agreement = MapToDetailDto(agreement, category, userId, role),
+            Agreement = MapToDetailDto(agreement, category, userId, role, invoice),
             FullyExecuted = fullyExecuted,
             OtherPartyID = otherUser.UserID,
             OtherPartyEmail = otherUser.Email,
@@ -282,7 +284,19 @@ public class LeaseAgreementRepository : ILeaseAgreementRepository
         return $"{prefix}{sequence}";
     }
 
-    private static LeaseAgreementDetailDto MapToDetailDto(LeaseAgreement a, string? category, int userId, string role) => new()
+    private async Task<(int? Id, string? Number, string? PaymentStatus)> ResolveInvoiceAsync(int quotationId)
+    {
+        var inv = await _db.Invoices.AsNoTracking()
+            .Where(i => i.QuotationID == quotationId)
+            .OrderByDescending(i => i.InvoiceID)
+            .Select(i => new { i.InvoiceID, i.InvoiceNumber, i.PaymentStatus })
+            .FirstOrDefaultAsync();
+        return inv == null ? (null, null, null) : (inv.InvoiceID, inv.InvoiceNumber, inv.PaymentStatus);
+    }
+
+    private static LeaseAgreementDetailDto MapToDetailDto(
+        LeaseAgreement a, string? category, int userId, string role,
+        (int? Id, string? Number, string? PaymentStatus)? invoice = null) => new()
     {
         LeaseAgreementID = a.LeaseAgreementID,
         AgreementNumber = a.AgreementNumber,
@@ -323,7 +337,10 @@ public class LeaseAgreementRepository : ILeaseAgreementRepository
         ContractorSigned = a.ContractorSigned,
         ContractorSignatureName = a.ContractorSignatureName,
         ContractorSignedDate = a.ContractorSignedDate,
-        CanSign = CanCurrentUserSign(a, userId, role)
+        CanSign = CanCurrentUserSign(a, userId, role),
+        InvoiceID = invoice?.Id,
+        InvoiceNumber = invoice?.Number,
+        InvoicePaymentStatus = invoice?.PaymentStatus
     };
 
     public async Task<LeaseExecutionStatus?> GetExecutionStatusForQuotationAsync(int quotationId)

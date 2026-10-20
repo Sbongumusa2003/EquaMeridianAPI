@@ -40,6 +40,12 @@ namespace EquaMeridian.DTOs.LeaseAgreements
         public string? ContractorSignatureName { get; set; }
         public DateTime? ContractorSignedDate { get; set; }
         public bool CanSign { get; set; }
+
+        /// <summary>Linked invoice for this hire (looked up by quotation). Null if not generated yet.</summary>
+        public int? InvoiceID { get; set; }
+        public string? InvoiceNumber { get; set; }
+        /// <summary>Pending, Paid, EftSubmitted, Cancelled, etc.</summary>
+        public string? InvoicePaymentStatus { get; set; }
     }
     public class LeaseAgreementListItemDto
     {

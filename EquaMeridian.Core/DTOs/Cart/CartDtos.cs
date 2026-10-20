@@ -69,6 +69,10 @@ namespace EquaMeridian.DTOs.Cart
         public decimal VatRate { get; set; }
         public decimal PriceInclVat { get; set; }
         public bool IsAvailable { get; set; }
+        /// <summary>Whether the listing allows contractor pickup at the supplier yard.</summary>
+        public bool PickupAvailable { get; set; }
+        /// <summary>Whether the listing allows supplier delivery to a customer address.</summary>
+        public bool DeliveryAvailable { get; set; }
     }
     public class CartSupplierGroupDto
     {

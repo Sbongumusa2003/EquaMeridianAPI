@@ -8179,13 +8179,13 @@
           },
           "dailyRateZAR": {
             "maximum": 10000000,
-            "minimum": 0,01,
+            "minimum": 0.01,
             "type": "number",
             "format": "double"
           },
           "weeklyRateZAR": {
             "maximum": 10000000,
-            "minimum": 0,01,
+            "minimum": 0.01,
             "type": "number",
             "format": "double",
             "nullable": true
@@ -8198,14 +8198,14 @@
           },
           "wetDailyRateZAR": {
             "maximum": 10000000,
-            "minimum": 0,01,
+            "minimum": 0.01,
             "type": "number",
             "format": "double",
             "nullable": true
           },
           "wetWeeklyRateZAR": {
             "maximum": 10000000,
-            "minimum": 0,01,
+            "minimum": 0.01,
             "type": "number",
             "format": "double",
             "nullable": true
@@ -8389,13 +8389,13 @@
           },
           "dailyRateZAR": {
             "maximum": 10000000,
-            "minimum": 0,01,
+            "minimum": 0.01,
             "type": "number",
             "format": "double"
           },
           "weeklyRateZAR": {
             "maximum": 10000000,
-            "minimum": 0,01,
+            "minimum": 0.01,
             "type": "number",
             "format": "double",
             "nullable": true
@@ -8408,14 +8408,14 @@
           },
           "wetDailyRateZAR": {
             "maximum": 10000000,
-            "minimum": 0,01,
+            "minimum": 0.01,
             "type": "number",
             "format": "double",
             "nullable": true
           },
           "wetWeeklyRateZAR": {
             "maximum": 10000000,
-            "minimum": 0,01,
+            "minimum": 0.01,
             "type": "number",
             "format": "double",
             "nullable": true
@@ -8626,7 +8626,7 @@
         "type": "object",
         "properties": {
           "dailyRateZAR": {
-            "minimum": 0,01,
+            "minimum": 0.01,
             "type": "number",
             "format": "double"
           },
